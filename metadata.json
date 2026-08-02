@@ -1,0 +1,8 @@
+{
+  "name": "Health-Ease",
+  "description": "A comprehensive healthcare appointment management system localized in Persian (Farsi) with RTL support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

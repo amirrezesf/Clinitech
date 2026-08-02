@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Health-Ease | سامانه مدیریت مطب</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Vazirmatn', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                50: '#f0fdf4',
+                100: '#dcfce7',
+                500: '#22c55e',
+                600: '#16a34a',
+                700: '#15803d',
+              },
+              secondary: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                800: '#1e293b',
+                900: '#0f172a',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #f1f5f9;
+        font-family: 'Vazirmatn', sans-serif;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      /* Dark Mode Body Override */
+      .dark body {
+        background-color: #0f172a; /* secondary-900 */
+        color: #f1f5f9;
+      }
+
+      /* Glassmorphism utilities */
+      .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      
+      .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      /* Dark Mode Glass */
+      .dark .glass {
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .dark .glass-card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+      }
+      
+      /* Dark Mode Text Overrides for specific tailwind classes that might be hardcoded */
+      .dark .text-gray-800, .dark .text-gray-900 {
+        color: #f1f5f9;
+      }
+      .dark .text-gray-700 {
+        color: #e2e8f0;
+      }
+      .dark .text-gray-600 {
+        color: #cbd5e1;
+      }
+      .dark .text-gray-500 {
+        color: #94a3b8;
+      }
+      .dark .bg-white {
+        background-color: #1e293b;
+      }
+      .dark .bg-gray-50 {
+        background-color: #334155;
+      }
+      .dark .border-gray-200, .dark .border-gray-100 {
+        border-color: #334155;
+      }
+
+      /* DatePicker Overrides */
+      .rmdp-container {
+        width: 100%;
+      }
+
+      /* Custom Scrollbar Styling */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+
+      /* Firefox Scrollbar */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+      }
+      .dark * {
+        scrollbar-color: #475569 transparent;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+    "react-multi-date-picker": "https://esm.sh/react-multi-date-picker@4.4.1?external=react,react-dom",
+    "react-date-object": "https://esm.sh/react-date-object@2.1.9?external=react,react-dom",
+    "react-date-object/": "https://esm.sh/react-date-object@2.1.9/",
+    "@reduxjs/toolkit": "https://esm.sh/@reduxjs/toolkit@2.2.1?external=react,react-dom",
+    "react-redux": "https://esm.sh/react-redux@9.1.0?external=react,react-dom",
+    "react-hot-toast": "https://esm.sh/react-hot-toast@2.4.1?external=react,react-dom",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
