@@ -52,6 +52,7 @@ export interface DoctorPermissions {
   allowServicePriceEdit: boolean;
   allowAppointmentDelete: boolean;
   allowManualDiscount: boolean;
+  allowOvertime?: boolean;
 }
 
 export interface Doctor {
@@ -97,7 +98,7 @@ export interface AppointmentReason {
   doctor_id: number;
 }
 
-export type AppointmentStatus = '0' | '1' | '2' | '3' | '4';
+export type AppointmentStatus = '0' | '1' | '2' | '3' | '4' | 'pending' | 'present' | 'in_visit' | 'finished' | 'absent' | 'cancelled' | 'interrupted' | 'forfeited';
 
 export interface AppointmentItem {
   reason_id: string;
@@ -121,6 +122,20 @@ export interface Appointment {
   diagnosis_draw?: string;
   actions?: string;
   actions_draw?: string;
+  // Day Board Operational Fields
+  is_protected?: boolean;
+  is_urgent?: boolean;
+  is_double_booked?: boolean;
+  is_walkin?: boolean;
+  is_returning?: boolean;
+  is_forfeited?: boolean;
+  actual_arrival_at?: string | null;
+  visit_started_at?: string | null;
+  visit_ended_at?: string | null;
+  cancellation_type?: 'patient' | 'clinic';
+  cancellation_reason?: string;
+  interrupt_reason?: string;
+  priority_order?: number;
 }
 
 export interface DoctorSmsTemplate {

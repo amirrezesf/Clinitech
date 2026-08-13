@@ -6,8 +6,11 @@ import { useAuth } from '../context/AuthContext';
 import { Patient, Appointment } from '../types';
 import { Siren, User, Phone, Stethoscope, ArrowRight, Footprints, Clock, AlertCircle, CheckCircle, X, ShieldCheck, ChevronDown, CreditCard, Hash, Plus, Trash2, Tag, ListChecks } from 'lucide-react';
 import clsx from 'clsx';
-import { formatCurrency } from '../utils/helpers';
+import { formatCurrency, findNextAvailableGapToday } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import { UrgentInsertionModal } from '../components/UrgentInsertionModal';
+import { UrgentInsertionInlinePreview } from '../components/UrgentInsertionInlinePreview';
+import { previewUrgentInsertion, UrgentInsertionPreviewResult } from '../services/urgentInsertionService';
 
 export const UrgentAppointment = () => {
   const navigate = useNavigate();
@@ -16,7 +19,7 @@ export const UrgentAppointment = () => {
   const mode = searchParams.get('mode');
   const isWalkIn = mode === 'walkin';
 
-  const { addPatient, addAppointment, doctors, allReasons, patients, allAppointments, insurances } = useData();
+  const { addPatient, addAppointment, updateAppointment, doctors, allReasons, patients, allAppointments, insurances } = useData();
   const { user } = useAuth();
   
   const allowedDoctors = doctors.filter(d => user?.allowedDoctorIds?.includes(d.id));
@@ -40,8 +43,49 @@ export const UrgentAppointment = () => {
   const [suggestedTime, setSuggestedTime] = useState<string | null>(null);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
+  // Urgent Insertion Modal & Preview State
+  const [isUrgentModalOpen, setIsUrgentModalOpen] = useState(false);
+  const [urgentPreview, setUrgentPreview] = useState<UrgentInsertionPreviewResult | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [overtimeAllowedOverride, setOvertimeAllowedOverride] = useState(false);
+
   const selectedDoctor = doctors.find(d => d.id === parseInt(selectedDoctorId));
   const doctorReasons = allReasons.filter(r => r.doctor_id === parseInt(selectedDoctorId));
+
+  // Auto-fetch urgent insertion preview whenever doctor, patient, or services change
+  useEffect(() => {
+    if (isWalkIn) return;
+    const hasPatient = selectedPatientId || (isNewPatient && (newPatientName || patientSearch));
+    if (!selectedDoctor || !hasPatient || selectedReasonIds.length === 0) {
+      setUrgentPreview(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsPreviewLoading(true);
+
+    previewUrgentInsertion({
+      doctor: selectedDoctor,
+      services: selectedReasonIds.map(id => ({ reason_id: id, quantity: 1 })),
+      allReasons,
+      allAppointments,
+      patients
+    }).then(res => {
+      if (isMounted) {
+        setUrgentPreview(res);
+        setIsPreviewLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) {
+        setIsPreviewLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isWalkIn, selectedDoctor, selectedPatientId, isNewPatient, newPatientName, patientSearch, selectedReasonIds, allReasons, allAppointments, patients]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,32 +135,100 @@ export const UrgentAppointment = () => {
     if (!isWalkIn || selectedReasonIds.length === 0 || !selectedDoctor) {
         setSuggestedTime(null); setAvailabilityError(null); return;
     }
-    // (Simplified availability search logic based on totalDuration)
-    setSuggestedTime(new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'}));
+    const gap = findNextAvailableGapToday(
+      selectedDoctor,
+      allAppointments,
+      selectedReasonIds.map(id => ({ reason_id: id, quantity: 1 })),
+      allReasons
+    );
+    setSuggestedTime(gap);
   }, [isWalkIn, selectedReasonIds, selectedDoctor, allAppointments, allReasons]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle Form Submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let finalId = selectedPatientId;
-    if (isNewPatient) {
-       finalId = `p-${Date.now()}`;
-       addPatient({ uuid: finalId, name: newPatientName, phone_number: newPatientPhone, id_number: '', notes: isWalkIn ? 'حضوری' : 'فوری', insurance_id: selectedInsuranceId });
-    }
-    if (!finalId || selectedReasonIds.length === 0) return;
+    if ((!selectedPatientId && !isNewPatient) || selectedReasonIds.length === 0 || !selectedDoctor) return;
 
-    // Fixed: Map reason_ids to services array with quantity
-    addAppointment({ 
-        uuid: `a-${Date.now()}`, patient_id: finalId, doctor_id: selectedDoctor!.id, 
-        services: selectedReasonIds.map(id => ({ reason_id: id, quantity: 1 })), 
-        status: '1', for_date: new Date().toISOString(), 
-        discount: 0, created_at: new Date().toISOString() 
-    });
-    toast.success('پذیرش با موفقیت ثبت شد.');
-    navigate('/today');
+    if (isWalkIn) {
+      // Direct booking for walk-in
+      let finalId = selectedPatientId;
+      if (isNewPatient) {
+         finalId = `p-${Date.now()}`;
+         await addPatient({ uuid: finalId, name: newPatientName, phone_number: newPatientPhone, id_number: '', notes: 'حضوری', insurance_id: selectedInsuranceId });
+      }
+
+      await addAppointment({ 
+          uuid: `a-${Date.now()}`, patient_id: finalId, doctor_id: selectedDoctor.id, 
+          services: selectedReasonIds.map(id => ({ reason_id: id, quantity: 1 })), 
+          status: '4', for_date: new Date().toISOString(), 
+          discount: 0, created_at: new Date().toISOString(),
+          is_walkin: true
+      });
+      toast.success('پذیرش حضوری با موفقیت ثبت شد.');
+      navigate('/today');
+      return;
+    }
+
+    // Urgent Mode: Opens confirmation modal
+    setIsUrgentModalOpen(true);
+  };
+
+  // Confirm urgent booking & displace affected patients
+  const handleConfirmUrgentBooking = async () => {
+    if (!selectedDoctor || !urgentPreview) return;
+    setIsSubmitting(true);
+
+    try {
+      let finalId = selectedPatientId;
+      if (isNewPatient) {
+         finalId = `p-${Date.now()}`;
+         await addPatient({ 
+           uuid: finalId, 
+           name: newPatientName || patientSearch, 
+           phone_number: newPatientPhone, 
+           id_number: '', 
+           notes: 'اورژانسی', 
+           insurance_id: selectedInsuranceId 
+         });
+      }
+
+      const todayStr = urgentPreview.proposedDate;
+      const insertionDateTimeIso = new Date(`${todayStr}T${urgentPreview.proposedTime}:00`).toISOString();
+
+      // 1. Add the urgent appointment
+      await addAppointment({
+        uuid: `a-${Date.now()}`,
+        patient_id: finalId,
+        doctor_id: selectedDoctor.id,
+        services: selectedReasonIds.map(id => ({ reason_id: id, quantity: 1 })),
+        status: '4',
+        for_date: insertionDateTimeIso,
+        discount: 0,
+        created_at: new Date().toISOString(),
+        is_urgent: true
+      });
+
+      // 2. Displace / shift affected appointments
+      for (const dp of urgentPreview.displacedPatients) {
+        const newForDateIso = new Date(`${todayStr}T${dp.newScheduledTime}:00`).toISOString();
+        await updateAppointment(dp.appointmentUuid, { for_date: newForDateIso });
+      }
+
+      toast.success(`نوبت اورژانسی ثبت شد. ${urgentPreview.totalDisplacedCount} نوبت دیگر جابجا گردیدند.`);
+      setIsUrgentModalOpen(false);
+      navigate('/today');
+    } catch (err) {
+      toast.error('خطا در ثبت نوبت اورژانسی');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const theme = isWalkIn ? { title: 'پذیرش حضوری (بدون نوبت)', icon: Footprints, color: 'text-blue-500', btn: 'bg-blue-600' } : { title: 'ثبت نوبت اورژانسی', icon: Siren, color: 'text-red-500', btn: 'bg-red-600' };
   const Icon = theme.icon;
+
+  const currentPatientObj = patients.find(p => p.uuid === selectedPatientId);
+  const displayPatientName = isNewPatient ? (newPatientName || patientSearch) : (currentPatientObj?.name || patientSearch);
 
   return (
     <div className="max-w-xl mx-auto space-y-6 pt-6 pb-20">
@@ -134,14 +246,14 @@ export const UrgentAppointment = () => {
                     </select>
                 </div>
 
-                {/* Patient Search (Simplified for this file) */}
+                {/* Patient Search */}
                 <div className="space-y-2" ref={dropdownRef}>
                     <label className="text-sm font-bold text-gray-700">جستجوی پرونده یا ایجاد جدید</label>
-                    <input type="text" className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none" placeholder="نام یا شماره تماس..." value={patientSearch} onChange={(e) => { setPatientSearch(e.target.value); setShowPatientList(true); }} onFocus={() => setShowPatientList(true)} />
+                    <input type="text" className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold text-sm" placeholder="نام یا شماره تماس..." value={patientSearch} onChange={(e) => { setPatientSearch(e.target.value); setShowPatientList(true); }} onFocus={() => setShowPatientList(true)} />
                     {showPatientList && (
                         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-40 overflow-y-auto">
-                            {patients.filter(p => p.name.includes(patientSearch)).map(p => (
-                                <div key={p.uuid} onClick={() => { setSelectedPatientId(p.uuid); setPatientSearch(p.name); setShowPatientList(false); setIsNewPatient(false); }} className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm border-b last:border-0">{p.name}</div>
+                            {patients.filter(p => p.name.includes(patientSearch) || p.phone_number.includes(patientSearch)).map(p => (
+                                <div key={p.uuid} onClick={() => { setSelectedPatientId(p.uuid); setPatientSearch(p.name); setShowPatientList(false); setIsNewPatient(false); }} className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm border-b last:border-0 font-bold">{p.name}</div>
                             ))}
                             <div onClick={() => { setIsNewPatient(true); setShowPatientList(false); setNewPatientName(patientSearch); }} className="px-4 py-3 bg-primary-50 text-primary-700 font-bold cursor-pointer text-sm flex items-center gap-2"><Plus size={16}/> ایجاد پرونده جدید برای "{patientSearch}"</div>
                         </div>
@@ -151,9 +263,9 @@ export const UrgentAppointment = () => {
                 {/* MULTI SERVICE SELECTOR */}
                 <div className="space-y-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
                     <label className="text-sm font-bold text-gray-700 flex items-center gap-2"><ListChecks size={18} className="text-primary-600"/> انتخاب خدمات</label>
-                    <select value="" onChange={(e) => addService(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                    <select value="" onChange={(e) => addService(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl outline-none text-sm font-bold">
                         <option value="" disabled>افزودن خدمت...</option>
-                        {doctorReasons.map(r => (<option key={r.uuid} value={r.uuid}>{r.title} - {formatCurrency(r.price)}</option>))}
+                        {doctorReasons.map(r => (<option key={r.uuid} value={r.uuid}>{r.title} - {formatCurrency(r.price)} ({r.duration} دقیقه)</option>))}
                     </select>
                     <div className="flex flex-wrap gap-2">
                         {selectedReasonIds.map(id => (
@@ -176,11 +288,60 @@ export const UrgentAppointment = () => {
                      </div>
                 )}
 
-                <button type="submit" disabled={selectedReasonIds.length === 0 || (!selectedPatientId && !isNewPatient)} className={clsx("w-full text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3", theme.btn, (selectedReasonIds.length === 0) && "opacity-50 grayscale")}>
-                    <CheckCircle size={24} /> <span>ثبت و پذیرش</span>
+                {isWalkIn && selectedReasonIds.length > 0 && (
+                     <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-2xl border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-xs font-bold space-y-1">
+                         <p className="font-extrabold text-xs text-blue-900 dark:text-blue-100 flex items-center gap-1.5">
+                             <Clock size={16} className="text-blue-500" />
+                             زمان پذیرش حضوری
+                         </p>
+                         {suggestedTime ? (
+                             <p className="text-xs font-bold text-blue-700 dark:text-blue-300 leading-relaxed">
+                                 این بیمار در اولین زمان خالی، حدوداً ساعت <span className="text-sm font-black underline dir-ltr inline-block px-1">{suggestedTime}</span> پذیرش خواهد شد.
+                             </p>
+                         ) : (
+                             <p className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                                 امروز زمان خالی در جدول کاری پزشک یافت نشد (پذیرش با زمان هم‌اکنون انجام خواهد شد).
+                             </p>
+                         )}
+                     </div>
+                )}
+
+                {!isWalkIn && (
+                  <UrgentInsertionInlinePreview
+                    preview={urgentPreview}
+                    isLoading={isPreviewLoading}
+                    hasRequiredSelections={!!selectedDoctor && (!!selectedPatientId || (isNewPatient && (!!newPatientName || !!patientSearch))) && selectedReasonIds.length > 0}
+                    overtimeAllowedOverride={overtimeAllowedOverride}
+                    onToggleOvertimeOverride={setOvertimeAllowedOverride}
+                  />
+                )}
+
+                <button 
+                  type="submit" 
+                  disabled={selectedReasonIds.length === 0 || (!selectedPatientId && !isNewPatient) || (!isWalkIn && urgentPreview?.exceedsWorkingHours && !urgentPreview.isOvertimeAllowed && !overtimeAllowedOverride)} 
+                  className={clsx("w-full text-white font-black text-lg py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3", theme.btn, (selectedReasonIds.length === 0 || (!isWalkIn && urgentPreview?.exceedsWorkingHours && !urgentPreview.isOvertimeAllowed && !overtimeAllowedOverride)) && "opacity-50 grayscale cursor-not-allowed")}
+                >
+                    <CheckCircle size={24} /> 
+                    <span>{isWalkIn ? 'ثبت و پذیرش حضوری' : 'ثبت و پذیرش اورژانسی'}</span>
                 </button>
             </form>
         </div>
+
+        {/* Confirmation Modal for Urgent Insertion */}
+        <UrgentInsertionModal
+          isOpen={isUrgentModalOpen}
+          onClose={() => {
+            setIsUrgentModalOpen(false);
+            setUrgentPreview(null);
+          }}
+          onConfirm={handleConfirmUrgentBooking}
+          preview={urgentPreview}
+          isLoading={isPreviewLoading}
+          isSubmitting={isSubmitting}
+          doctorName={selectedDoctor?.name}
+          patientName={displayPatientName}
+        />
     </div>
   );
 };
+

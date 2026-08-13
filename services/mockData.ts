@@ -9,7 +9,8 @@ const defaultDaySchedule: DailySchedule = {
 };
 
 const workingDaySchedule: DailySchedule = {
-  ...defaultDaySchedule,
+  start: "08:00",
+  end: "22:00",
   is_working: true,
   breaks: [{ start: "13:00", end: "14:00" }]
 };
@@ -27,10 +28,10 @@ export const MOCK_DOCTORS: Doctor[] = [
       "Saturday": { ...workingDaySchedule },
       "Sunday": { ...workingDaySchedule },
       "Monday": { ...workingDaySchedule },
-      "Tuesday": { ...defaultDaySchedule },
+      "Tuesday": { ...workingDaySchedule },
       "Wednesday": { ...workingDaySchedule },
-      "Thursday": { ...defaultDaySchedule, is_working: true, end: "13:00", breaks: [] },
-      "Friday": { ...defaultDaySchedule }
+      "Thursday": { ...workingDaySchedule },
+      "Friday": { ...workingDaySchedule }
     },
     permissions: {
         allowServicePriceEdit: true,
@@ -51,13 +52,13 @@ export const MOCK_DOCTORS: Doctor[] = [
     booking_window_days: 60,
     maxBookingPercent: 80,
     schedule: {
-      "Saturday": { ...workingDaySchedule, start: "14:00", end: "20:00", breaks: [] },
-      "Sunday": { ...workingDaySchedule, start: "14:00", end: "20:00", breaks: [] },
-      "Monday": { ...workingDaySchedule, start: "14:00", end: "20:00", breaks: [] },
-      "Tuesday": { ...workingDaySchedule, start: "14:00", end: "20:00", breaks: [] },
-      "Wednesday": { ...workingDaySchedule, start: "14:00", end: "20:00", breaks: [] },
-      "Thursday": { ...defaultDaySchedule },
-      "Friday": { ...defaultDaySchedule }
+      "Saturday": { ...workingDaySchedule },
+      "Sunday": { ...workingDaySchedule },
+      "Monday": { ...workingDaySchedule },
+      "Tuesday": { ...workingDaySchedule },
+      "Wednesday": { ...workingDaySchedule },
+      "Thursday": { ...workingDaySchedule },
+      "Friday": { ...workingDaySchedule }
     },
     permissions: {
         allowServicePriceEdit: false,
@@ -78,13 +79,13 @@ export const MOCK_DOCTORS: Doctor[] = [
     booking_window_days: 45,
     maxBookingPercent: 90,
     schedule: {
-      "Saturday": { ...workingDaySchedule, start: "16:00", end: "20:00", breaks: [] },
-      "Sunday": { ...defaultDaySchedule },
-      "Monday": { ...workingDaySchedule, start: "16:00", end: "20:00", breaks: [] },
-      "Tuesday": { ...defaultDaySchedule },
-      "Wednesday": { ...workingDaySchedule, start: "16:00", end: "20:00", breaks: [] },
-      "Thursday": { ...defaultDaySchedule },
-      "Friday": { ...defaultDaySchedule }
+      "Saturday": { ...workingDaySchedule },
+      "Sunday": { ...workingDaySchedule },
+      "Monday": { ...workingDaySchedule },
+      "Tuesday": { ...workingDaySchedule },
+      "Wednesday": { ...workingDaySchedule },
+      "Thursday": { ...workingDaySchedule },
+      "Friday": { ...workingDaySchedule }
     },
     permissions: {
         allowServicePriceEdit: true,
@@ -152,7 +153,47 @@ const setTime = (hours: number, minutes: number) => {
     return d.toISOString();
 };
 
+const nowMs = Date.now();
+const minutesAgo = (mins: number) => new Date(nowMs - mins * 60000).toISOString();
+
 export const MOCK_APPOINTMENTS: Appointment[] = [
+  {
+    uuid: "a-invisit-1",
+    patient_id: "p1",
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }, { reason_id: "r2", quantity: 1 }],
+    status: '3', // in_visit
+    for_date: setTime(9, 30),
+    actual_arrival_at: minutesAgo(35),
+    visit_started_at: minutesAgo(12),
+    is_protected: true,
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-urgent-1",
+    patient_id: "p3",
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }],
+    status: '4', // present
+    for_date: setTime(10, 0),
+    actual_arrival_at: minutesAgo(18),
+    is_urgent: true,
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-present-late",
+    patient_id: "p2",
+    doctor_id: 1,
+    services: [{ reason_id: "r3", quantity: 1 }],
+    status: '4', // present
+    for_date: setTime(9, 45), // scheduled 9:45
+    actual_arrival_at: setTime(10, 0), // arrived 10:00 (15m late)
+    is_double_booked: true,
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
   {
     uuid: "rec-1-session-1",
     patient_id: "p1",
@@ -160,6 +201,9 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     services: [{ reason_id: "r5", quantity: 1 }],
     status: '0',
     for_date: setTime(9, 30),
+    actual_arrival_at: setTime(9, 25),
+    visit_started_at: setTime(9, 30),
+    visit_ended_at: setTime(9, 50),
     discount: 0,
     created_at: new Date().toISOString(),
     recurring_id: "rec-ortho-101",
@@ -172,6 +216,9 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     services: [{ reason_id: "r1", quantity: 1 }, { reason_id: "r2", quantity: 2 }],
     status: '0',
     for_date: setTime(10, 0),
+    actual_arrival_at: setTime(9, 55),
+    visit_started_at: setTime(10, 0),
+    visit_ended_at: setTime(10, 30),
     discount: 0,
     created_at: new Date().toISOString()
   },
@@ -180,18 +227,8 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     patient_id: "p3",
     doctor_id: 1,
     services: [{ reason_id: "r1", quantity: 1 }],
-    status: '1',
+    status: '1', // pending
     for_date: setTime(11, 0),
-    discount: 0,
-    created_at: new Date().toISOString()
-  },
-  {
-    uuid: "a-invisit-1",
-    patient_id: "p1",
-    doctor_id: 3,
-    services: [{ reason_id: "r8", quantity: 1 }, { reason_id: "r9", quantity: 1 }],
-    status: '3',
-    for_date: setTime(10, 30),
     discount: 0,
     created_at: new Date().toISOString()
   },
@@ -200,7 +237,7 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     patient_id: "p2",
     doctor_id: 2,
     services: [{ reason_id: "r7", quantity: 1 }],
-    status: '2',
+    status: '2', // absent
     for_date: setTime(14, 30),
     discount: 0,
     created_at: new Date().toISOString()
