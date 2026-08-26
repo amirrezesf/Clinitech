@@ -158,8 +158,21 @@ const minutesAgo = (mins: number) => new Date(nowMs - mins * 60000).toISOString(
 
 export const MOCK_APPOINTMENTS: Appointment[] = [
   {
-    uuid: "a-invisit-1",
+    uuid: "a-completed-1",
     patient_id: "p1",
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }],
+    status: '0', // completed
+    for_date: setTime(9, 0),
+    actual_arrival_at: minutesAgo(65),
+    visit_started_at: minutesAgo(60),
+    visit_ended_at: minutesAgo(35),
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-invisit-1",
+    patient_id: "p2",
     doctor_id: 1,
     services: [{ reason_id: "r1", quantity: 1 }, { reason_id: "r2", quantity: 1 }],
     status: '3', // in_visit
@@ -171,96 +184,33 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     created_at: new Date().toISOString()
   },
   {
-    uuid: "a-urgent-1",
+    uuid: "a-present-1",
     patient_id: "p3",
     doctor_id: 1,
     services: [{ reason_id: "r1", quantity: 1 }],
-    status: '4', // present
-    for_date: setTime(10, 0),
-    actual_arrival_at: minutesAgo(18),
-    is_urgent: true,
-    discount: 0,
-    created_at: new Date().toISOString()
-  },
-  {
-    uuid: "a-present-late",
-    patient_id: "p2",
-    doctor_id: 1,
-    services: [{ reason_id: "r3", quantity: 1 }],
-    status: '4', // present
-    for_date: setTime(9, 45), // scheduled 9:45
-    actual_arrival_at: setTime(10, 0), // arrived 10:00 (15m late)
-    is_double_booked: true,
-    discount: 0,
-    created_at: new Date().toISOString()
-  },
-  {
-    uuid: "rec-1-session-1",
-    patient_id: "p1",
-    doctor_id: 2,
-    services: [{ reason_id: "r5", quantity: 1 }],
-    status: '0',
-    for_date: setTime(9, 30),
-    actual_arrival_at: setTime(9, 25),
-    visit_started_at: setTime(9, 30),
-    visit_ended_at: setTime(9, 50),
-    discount: 0,
-    created_at: new Date().toISOString(),
-    recurring_id: "rec-ortho-101",
-    recurring_title: "درمان جامع ارتودنسی"
-  },
-  {
-    uuid: "a1",
-    patient_id: "p2",
-    doctor_id: 1,
-    services: [{ reason_id: "r1", quantity: 1 }, { reason_id: "r2", quantity: 2 }],
-    status: '0',
-    for_date: setTime(10, 0),
-    actual_arrival_at: setTime(9, 55),
-    visit_started_at: setTime(10, 0),
-    visit_ended_at: setTime(10, 30),
+    status: '4', // present (waiting in clinic)
+    for_date: setTime(10, 15),
+    actual_arrival_at: minutesAgo(10),
     discount: 0,
     created_at: new Date().toISOString()
   },
   {
     uuid: "a-pending-1",
-    patient_id: "p3",
+    patient_id: "p1",
     doctor_id: 1,
-    services: [{ reason_id: "r1", quantity: 1 }],
-    status: '1', // pending
+    services: [{ reason_id: "r3", quantity: 1 }],
+    status: '1', // pending / scheduled
     for_date: setTime(11, 0),
     discount: 0,
     created_at: new Date().toISOString()
   },
   {
-    uuid: "a-absent-1",
+    uuid: "a-pending-2",
     patient_id: "p2",
-    doctor_id: 2,
-    services: [{ reason_id: "r7", quantity: 1 }],
-    status: '2', // absent
-    for_date: setTime(14, 30),
-    discount: 0,
-    created_at: new Date().toISOString()
-  },
-  {
-    uuid: "a-recurring-today",
-    patient_id: "p1",
-    doctor_id: 2,
-    services: [{ reason_id: "r6", quantity: 1 }],
-    status: '1',
-    for_date: setTime(16, 0),
-    discount: 0,
-    created_at: new Date().toISOString(),
-    recurring_id: "rec-ortho-101",
-    recurring_title: "درمان جامع ارتودنسی"
-  },
-  {
-    uuid: "a-multi-service-pending",
-    patient_id: "p3",
     doctor_id: 1,
-    services: [{ reason_id: "r1", quantity: 1 }, { reason_id: "r3", quantity: 1 }, { reason_id: "r4", quantity: 1 }],
-    status: '1',
-    for_date: setTime(17, 30),
+    services: [{ reason_id: "r2", quantity: 1 }],
+    status: '1', // pending / scheduled
+    for_date: setTime(11, 45),
     discount: 0,
     created_at: new Date().toISOString()
   }

@@ -85,6 +85,23 @@ export const Appointments = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
   const [openMenuUuid, setOpenMenuUuid] = useState<string | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number } | null>(null);
+
+  // Close floating options menu on scroll or window resize
+  useEffect(() => {
+    const handleDismiss = () => {
+      if (openMenuUuid) {
+        setOpenMenuUuid(null);
+        setMenuAnchor(null);
+      }
+    };
+    window.addEventListener('scroll', handleDismiss, true);
+    window.addEventListener('resize', handleDismiss);
+    return () => {
+      window.removeEventListener('scroll', handleDismiss, true);
+      window.removeEventListener('resize', handleDismiss);
+    };
+  }, [openMenuUuid]);
 
   // Doctor Selector
   const allowedDoctors = doctors.filter(d => user?.allowedDoctorIds?.includes(d.id));
@@ -592,7 +609,6 @@ export const Appointments = () => {
                 const isCurrentVisit = apt.status === '3' || apt.status === 'in_visit';
                 const isPresent = apt.status === '4' || apt.status === 'present';
                 const isLoadingThisAction = loadingActionId === apt.uuid;
-                const isNearBottom = currentAppointmentsList.length > 1 && index >= currentAppointmentsList.length - 2;
 
                 return (
                   <tr 
@@ -738,67 +754,27 @@ export const Appointments = () => {
                         <div className="relative inline-block text-right">
                           <button 
                             disabled={isLoadingThisAction}
-                            onClick={() => setOpenMenuUuid(prev => prev === apt.uuid ? null : apt.uuid)} 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (openMenuUuid === apt.uuid) {
+                                setOpenMenuUuid(null);
+                                setMenuAnchor(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const dropdownHeight = 140;
+                                const spaceBelow = window.innerHeight - rect.bottom;
+                                const showAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+                                const top = showAbove ? rect.top - dropdownHeight - 4 : rect.bottom + 4;
+                                const left = Math.max(10, Math.min(window.innerWidth - 154, rect.right - 144));
+                                setOpenMenuUuid(apt.uuid);
+                                setMenuAnchor({ top, left });
+                              }
+                            }} 
                             className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl transition-all border border-gray-200 dark:border-gray-700 active:scale-95 disabled:opacity-50"
                             title="سایر عملیات"
                           >
                             <MoreVertical size={16} />
                           </button>
-
-                          {openMenuUuid === apt.uuid && (
-                            <>
-                              <div 
-                                className="fixed inset-0 z-10" 
-                                onClick={() => setOpenMenuUuid(null)} 
-                              />
-                              <div className={clsx(
-                                "absolute left-0 w-36 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 py-1.5 z-30 text-right text-xs font-bold divide-y divide-gray-100 dark:divide-gray-700/60 animate-in fade-in zoom-in-95",
-                                isNearBottom ? "bottom-full mb-1" : "top-full mt-1"
-                              )}>
-                                {/* Present status overflow options */}
-                                {(apt.status === '4' || apt.status === 'present') && (
-                                  <button
-                                    onClick={() => {
-                                      setOpenMenuUuid(null);
-                                      handleMarkAbsent(apt.uuid);
-                                    }}
-                                    className="w-full px-3 py-2 text-right text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors"
-                                  >
-                                    <UserX size={14} />
-                                    <span>ثبت غیبت</span>
-                                  </button>
-                                )}
-
-                                {/* In-Visit status overflow options */}
-                                {(apt.status === '3' || apt.status === 'in_visit') && (
-                                  <button
-                                    onClick={() => {
-                                      setOpenMenuUuid(null);
-                                      openInterruptModal(apt);
-                                    }}
-                                    className="w-full px-3 py-2 text-right text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-2 transition-colors"
-                                  >
-                                    <PauseCircle size={14} />
-                                    <span>قطع جلسه</span>
-                                  </button>
-                                )}
-
-                                {/* Cancel option for uncancelled appointments */}
-                                {apt.status !== 'cancelled' && (
-                                  <button
-                                    onClick={() => {
-                                      setOpenMenuUuid(null);
-                                      openCancelModal(apt);
-                                    }}
-                                    className="w-full px-3 py-2 text-right text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-red-600 flex items-center gap-2 transition-colors"
-                                  >
-                                    <XCircle size={14} />
-                                    <span>لغو نوبت</span>
-                                  </button>
-                                )}
-                              </div>
-                            </>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -815,6 +791,72 @@ export const Appointments = () => {
           </table>
         </div>
       </div>
+
+      {/* --- FLOATING OVERFLOW OPTIONS MENU --- */}
+      {openMenuUuid && menuAnchor && (() => {
+        const apt = currentAppointmentsList.find(a => a.uuid === openMenuUuid);
+        if (!apt) return null;
+        return (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => {
+                setOpenMenuUuid(null);
+                setMenuAnchor(null);
+              }} 
+            />
+            <div 
+              style={{ top: `${menuAnchor.top}px`, left: `${menuAnchor.left}px` }}
+              className="fixed w-36 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-50 text-right text-xs font-bold divide-y divide-gray-100 dark:divide-gray-700/60 animate-in fade-in zoom-in-95"
+            >
+              {/* Present status overflow options */}
+              {(apt.status === '4' || apt.status === 'present') && (
+                <button
+                  onClick={() => {
+                    setOpenMenuUuid(null);
+                    setMenuAnchor(null);
+                    handleMarkAbsent(apt.uuid);
+                  }}
+                  className="w-full px-3 py-2 text-right text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors"
+                >
+                  <UserX size={14} />
+                  <span>ثبت غیبت</span>
+                </button>
+              )}
+
+              {/* In-Visit status overflow options */}
+              {(apt.status === '3' || apt.status === 'in_visit') && (
+                <button
+                  onClick={() => {
+                    setOpenMenuUuid(null);
+                    setMenuAnchor(null);
+                    openInterruptModal(apt);
+                  }}
+                  className="w-full px-3 py-2 text-right text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-2 transition-colors"
+                >
+                  <PauseCircle size={14} />
+                  <span>قطع جلسه</span>
+                </button>
+              )}
+
+              {/* Cancel option for uncancelled appointments */}
+              {apt.status !== 'cancelled' && (
+                <button
+                  onClick={() => {
+                    setOpenMenuUuid(null);
+                    setMenuAnchor(null);
+                    openCancelModal(apt);
+                  }}
+                  className="w-full px-3 py-2 text-right text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-red-600 flex items-center gap-2 transition-colors"
+                >
+                  <XCircle size={14} />
+                  <span>لغو نوبت</span>
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* --- BULK ACTION FOOTER --- */}
       {selectedIds.length > 0 && (
