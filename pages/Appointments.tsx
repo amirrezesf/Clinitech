@@ -7,7 +7,7 @@ import {
   XCircle, Download, Clock, Square, CheckSquare, MinusSquare, 
   UserCheck, UserX, ShieldCheck, Siren, Layers, AlertCircle,
   PauseCircle, AlertTriangle, Users, Radio, Activity, RefreshCw, X, Check,
-  MoreVertical
+  MoreVertical, CalendarClock, RotateCcw, Sparkles
 } from 'lucide-react';
 import { Appointment } from '../types';
 import DateObject from 'react-date-object';
@@ -17,6 +17,16 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { api } from '../services/api';
+import { DoctorDelayModal } from '../components/DoctorDelayModal';
+
+export interface DoctorDelayRecord {
+  doctorId: number;
+  dateStr: string;
+  delayMinutes: number;
+  reason: string;
+  appliedAt: string;
+  sendSms?: boolean;
+}
 
 // Will become an admin-configurable setting — currently a local default until that setting exists on the backend.
 export const EXTREME_LATENESS_THRESHOLD_MINUTES = 60;
@@ -68,9 +78,11 @@ export const Appointments = () => {
     allAppointments,
     allReasons, 
     doctors,
+    patients,
     getPatientName, 
     getReasonTitle, 
     updateAppointment, 
+    logAction
   } = useData();
 
   const isDoctor = user?.role === 'doctor';
@@ -107,7 +119,26 @@ export const Appointments = () => {
   const allowedDoctors = doctors.filter(d => user?.allowedDoctorIds?.includes(d.id));
   const [selectedDoctorId, setSelectedDoctorId] = useState<number>(allowedDoctors[0]?.id || doctors[0]?.id || 1);
 
-  // Delay Modal State
+  // Doctor Arrival Delay State
+  const [isDoctorDelayModalOpen, setIsDoctorDelayModalOpen] = useState(false);
+  const [doctorDelays, setDoctorDelays] = useState<Record<string, DoctorDelayRecord>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('doctor_active_delays') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  const activeDateStr = selectedDay.toDate().toISOString().split('T')[0];
+  const activeDoctorDelayKey = `${selectedDoctorId}_${activeDateStr}`;
+  const activeDoctorDelay = doctorDelays[activeDoctorDelayKey] || null;
+
+  // Selected Doctor Object
+  const currentDoctor = useMemo(() => {
+    return doctors.find(d => d.id === selectedDoctorId);
+  }, [doctors, selectedDoctorId]);
+
+  // Delay Modal State (Bulk selection)
   const [isDelayModalOpen, setIsDelayModalOpen] = useState(false);
   const [delayMinutes, setDelayMinutes] = useState(30);
 
@@ -455,6 +486,98 @@ export const Appointments = () => {
       fetchDayBoard();
   };
 
+  // --- DOCTOR ARRIVAL DELAY HANDLERS ---
+  const handleApplyDoctorDelay = async (config: {
+    delayMinutes: number;
+    reason: string;
+    sendSms: boolean;
+    protectPatients: boolean;
+    shiftAppointments: boolean;
+  }) => {
+    const { delayMinutes: dMins, reason: dReason, sendSms, protectPatients, shiftAppointments } = config;
+    const dateStr = selectedDay.toDate().toISOString().split('T')[0];
+    const docName = currentDoctor?.name || 'پزشک';
+    const toastId = toast.loading(`در حال اعمال تاخیر ${dMins} دقیقه‌ای و تنظیم خودکار صف...`);
+
+    try {
+      let affectedCount = 0;
+
+      if (shiftAppointments) {
+        // Find eligible appointments for this doctor on this day
+        const targetAppts = allAppointments.filter(apt => {
+          const matchesDoc = apt.doctor_id === selectedDoctorId;
+          const matchesDate = apt.for_date.startsWith(dateStr);
+          const isFinished = apt.status === '0' || apt.status === 'finished';
+          const isInVisit = apt.status === '3' || apt.status === 'in_visit';
+          const isCancelled = apt.status === 'cancelled' || apt.status === 'absent' || apt.status === '2';
+          return matchesDoc && matchesDate && !isFinished && !isInVisit && !isCancelled;
+        });
+
+        for (const apt of targetAppts) {
+          const currentDate = new Date(apt.for_date);
+          const newDate = new Date(currentDate.getTime() + dMins * 60000);
+          const updates: Partial<Appointment> = {
+            for_date: newDate.toISOString(),
+            ...(protectPatients ? { is_protected: true } : {})
+          };
+          await updateAppointment(apt.uuid, updates);
+          affectedCount++;
+        }
+      }
+
+      // Save persistent active delay record for today
+      const newRecord: DoctorDelayRecord = {
+        doctorId: selectedDoctorId,
+        dateStr,
+        delayMinutes: dMins,
+        reason: dReason,
+        appliedAt: new Date().toISOString(),
+        sendSms
+      };
+
+      setDoctorDelays(prev => {
+        const next = { ...prev, [activeDoctorDelayKey]: newRecord };
+        localStorage.setItem('doctor_active_delays', JSON.stringify(next));
+        return next;
+      });
+
+      // Log action in audit logs
+      await logAction({
+        action: 'ثبت تاخیر پزشک',
+        user: user?.fullName || 'منشی',
+        details: `تاخیر ${dMins} دقیقه برای ${docName} به علت «${dReason}» - جابجایی ${affectedCount} نوبت ${sendSms ? '+ ارسال پیامک اطلاع‌رسانی' : ''}`
+      });
+
+      toast.success(
+        `تاخیر ${dMins} دقیقه‌ای برای ${docName} اعمال شد و ${affectedCount} نوبت به‌طور خودکار هماهنگ گردید.`,
+        { id: toastId, duration: 4500 }
+      );
+
+      await fetchDayBoard();
+    } catch (err) {
+      toast.error('خطا در ثبت تاخیر پزشک.', { id: toastId });
+    }
+  };
+
+  const handleClearDoctorDelay = async () => {
+    const docName = currentDoctor?.name || 'پزشک';
+    setDoctorDelays(prev => {
+      const next = { ...prev };
+      delete next[activeDoctorDelayKey];
+      localStorage.setItem('doctor_active_delays', JSON.stringify(next));
+      return next;
+    });
+
+    await logAction({
+      action: 'لغو تاخیر پزشک',
+      user: user?.fullName || 'منشی',
+      details: `پایان تاخیر و حضور ${docName} در مطب`
+    });
+
+    toast.success(`وضعیت تاخیر ${docName} لغو شد (ورود پزشک به مطب).`);
+    fetchDayBoard();
+  };
+
   return (
     <div className="space-y-6 pb-24">
       {/* Top Header */}
@@ -478,7 +601,7 @@ export const Appointments = () => {
           <p className="text-xs text-gray-400 font-bold mt-1">تخته عملیاتی روزانه - مرتب‌شده بر اساس اولویت صف درمان</p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
             {allowedDoctors.length > 1 && (
               <select 
                 value={selectedDoctorId} 
@@ -489,6 +612,27 @@ export const Appointments = () => {
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
               </select>
+            )}
+
+            {/* Doctor Delay Trigger Button */}
+            {activeDoctorDelay ? (
+              <button
+                onClick={() => setIsDoctorDelayModalOpen(true)}
+                className="px-3.5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl flex items-center gap-2 shadow-md shadow-amber-500/20 font-black transition-all text-xs active:scale-95 border border-amber-400/40"
+                title="تاخیر فعال پزشک - کلیک جهت مشاهده، ویرایش یا لغو"
+              >
+                <Clock size={16} className="animate-pulse" />
+                <span>تاخیر فعال ({activeDoctorDelay.delayMinutes} دقیقه)</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsDoctorDelayModalOpen(true)}
+                className="px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl flex items-center gap-2 font-black transition-all text-xs active:scale-95 shadow-sm"
+                title="ثبت تاخیر در ورود پزشک و تنظیم خودکار کلیه نوبت‌ها"
+              >
+                <CalendarClock size={16} className="text-amber-600 dark:text-amber-400" />
+                <span>اعلام تاخیر پزشک</span>
+              </button>
             )}
 
             <button 
@@ -509,6 +653,47 @@ export const Appointments = () => {
             </button>
         </div>
       </div>
+
+      {/* ACTIVE DOCTOR DELAY ALERT BANNER */}
+      {activeDoctorDelay && (
+        <div className="bg-gradient-to-l from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-300 dark:border-amber-800/80 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-md shadow-amber-500/20">
+              <CalendarClock size={24} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-black text-amber-950 dark:text-amber-100">
+                  وضعیت تاخیر ورود پزشک فعال است: {currentDoctor?.name} با {activeDoctorDelay.delayMinutes} دقیقه تاخیر
+                </span>
+                {activeDoctorDelay.reason && (
+                  <span className="text-[10px] bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 px-2.5 py-0.5 rounded-lg font-bold">
+                    علت: {activeDoctorDelay.reason}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-amber-800 dark:text-amber-300 font-medium mt-0.5">
+                تمام نوبت‌های باقی‌مانده امروز به صورت خودکار به میزان {activeDoctorDelay.delayMinutes} دقیقه جابجا شده و اولویت حضور بیماران در صف درمان محافظت شده است.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
+            <button
+              onClick={() => setIsDoctorDelayModalOpen(true)}
+              className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black transition-all shadow-sm active:scale-95"
+            >
+              ویرایش تاخیر
+            </button>
+            <button
+              onClick={handleClearDoctorDelay}
+              className="px-3.5 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-xs font-bold transition-all border border-gray-200 dark:border-gray-700 active:scale-95"
+            >
+              لغو تاخیر (پزشک حاضر شد)
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* STATS SUMMARY BAR */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1009,7 +1194,22 @@ export const Appointments = () => {
         </div>
       )}
 
-      {/* --- DELAY MODAL --- */}
+      {/* --- DOCTOR ARRIVAL DELAY MODAL --- */}
+      <DoctorDelayModal
+        isOpen={isDoctorDelayModalOpen}
+        onClose={() => setIsDoctorDelayModalOpen(false)}
+        doctor={currentDoctor}
+        appointments={currentAppointmentsList}
+        patients={patients}
+        getPatientName={getPatientName}
+        getReasonTitle={getReasonTitle}
+        onApplyDelay={handleApplyDoctorDelay}
+        currentDelayMinutes={activeDoctorDelay?.delayMinutes || 0}
+        currentDelayReason={activeDoctorDelay?.reason || ''}
+        onClearDelay={activeDoctorDelay ? handleClearDoctorDelay : undefined}
+      />
+
+      {/* --- BULK SELECTION DELAY MODAL --- */}
       {isDelayModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in !mt-0">
               <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95">

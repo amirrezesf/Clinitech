@@ -130,6 +130,25 @@ export const MOCK_PATIENTS: Patient[] = [
     id_number: "1234567890",
     insurance_id: 'ins-3',
     insurance_code: '98765432'
+  },
+  {
+    uuid: "p4",
+    name: "حسین ابراهیمی",
+    phone_number: "02188776655",
+    id_number: "0054321987",
+    notes: "شماره ثابت منزل - عدم دریافت پیامک",
+    insurance_id: 'ins-1',
+    insurance_code: '55443322'
+  },
+  {
+    uuid: "p5",
+    name: "فاطمه حسینی",
+    phone_number: "09129876543",
+    id_number: "0078965412",
+    notes: "مسدودی پیامک‌های تبلیغاتی و خدماتی (Blacklist)",
+    insurance_id: 'ins-2',
+    insurance_code: '99887766',
+    sms_blocked: true
   }
 ];
 
@@ -245,6 +264,26 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     services: [{ reason_id: "r3", quantity: 1 }, { reason_id: "r4", quantity: 1 }],
     status: '1', // pending
     for_date: setTime(17, 15),
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-manual-1",
+    patient_id: "p4", // landline phone (02188776655)
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }],
+    status: '1', // pending
+    for_date: setTime(18, 0),
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-manual-2",
+    patient_id: "p5", // SMS blacklisted
+    doctor_id: 1,
+    services: [{ reason_id: "r2", quantity: 1 }],
+    status: '1', // pending
+    for_date: setTime(18, 45),
     discount: 0,
     created_at: new Date().toISOString()
   }

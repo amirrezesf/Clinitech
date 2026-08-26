@@ -88,6 +88,8 @@ export interface Patient {
   insurance_code?: string;
   medical_history?: string[];
   has_outstanding_penalty?: boolean;
+  sms_blocked?: boolean;
+  no_sms?: boolean;
 }
 
 export interface AppointmentReason {
