@@ -165,6 +165,9 @@ export interface Payment {
   description?: string;
   receipt_image?: string; 
   quantity?: number;
+  payment_method?: 'pos' | 'cash' | 'card_to_card' | 'debt' | 'insurance' | 'other';
+  reference_number?: string;
+  payer_name?: string;
 }
 
 export interface Installment {

@@ -356,10 +356,35 @@ export const Payments = () => {
                         {filteredPayments.length > 0 ? (
                             filteredPayments.map(p => (
                                 <tr key={p.uuid} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group">
-                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{getPatientName(p.patient_id)}</td>
+                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                                      <div className="flex flex-col">
+                                        <span>{getPatientName(p.patient_id)}</span>
+                                        {p.appointment_uuid && (
+                                          <span className="text-[10px] text-gray-400 font-bold">متصل به نوبت درمانی</span>
+                                        )}
+                                      </div>
+                                    </td>
                                     <td className="px-6 py-4">
                                       <div className="flex flex-col gap-1">
-                                        <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[10px] font-black border border-blue-100 dark:border-blue-800 w-fit">{getReasonText(p)}</span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[10px] font-black border border-blue-100 dark:border-blue-800 w-fit">{getReasonText(p)}</span>
+                                          {p.payment_method && (
+                                            <span className={clsx(
+                                              "px-2 py-0.5 rounded text-[10px] font-bold border",
+                                              p.payment_method === 'pos' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                              p.payment_method === 'cash' ? "bg-cyan-50 text-cyan-700 border-cyan-200" :
+                                              p.payment_method === 'card_to_card' ? "bg-purple-50 text-purple-700 border-purple-200" :
+                                              "bg-amber-50 text-amber-700 border-amber-200"
+                                            )}>
+                                              {p.payment_method === 'pos' ? 'کارت‌خوان' :
+                                               p.payment_method === 'cash' ? 'نقدی' :
+                                               p.payment_method === 'card_to_card' ? 'کارت به کارت' : 'بدهی / نسیه'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        {p.reference_number && (
+                                          <span className="text-[10px] text-gray-400 font-mono dir-ltr text-right">پیگیری: {p.reference_number}</span>
+                                        )}
                                         {p.discount && p.discount > 0 && <span className="text-[10px] text-emerald-600 font-black">-{formatCurrency(p.discount)} تخفیف</span>}
                                       </div>
                                     </td>

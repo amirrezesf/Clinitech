@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { formatJalaliDate, formatJalaliTime, statusLabels } from '../utils/helpers';
+import { formatCurrency, formatJalaliDate, formatJalaliTime, statusLabels } from '../utils/helpers';
 import { 
   Search, Plus, ChevronRight, ChevronLeft, PlayCircle, CheckCircle, 
   XCircle, Download, Clock, Square, CheckSquare, MinusSquare, 
   UserCheck, UserX, ShieldCheck, Siren, Layers, AlertCircle,
   PauseCircle, AlertTriangle, Users, Radio, Activity, RefreshCw, X, Check,
-  MoreVertical, CalendarClock, RotateCcw, Sparkles
+  MoreVertical, CalendarClock, RotateCcw, Sparkles, Receipt, CheckCheck,
+  CreditCard, DollarSign
 } from 'lucide-react';
 import { Appointment } from '../types';
 import DateObject from 'react-date-object';
@@ -18,6 +19,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { api } from '../services/api';
 import { DoctorDelayModal } from '../components/DoctorDelayModal';
+import { AppointmentPaymentModal } from '../components/AppointmentPaymentModal';
 
 export interface DoctorDelayRecord {
   doctorId: number;
@@ -79,6 +81,9 @@ export const Appointments = () => {
     allReasons, 
     doctors,
     patients,
+    payments,
+    insurances,
+    addPayment,
     getPatientName, 
     getReasonTitle, 
     updateAppointment, 
@@ -90,6 +95,10 @@ export const Appointments = () => {
   const [selectedDay, setSelectedDay] = useState(new DateObject({ calendar: persian, locale: persian_fa }));
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
+  // Checkout & Payment Modal State
+  const [checkoutAppointment, setCheckoutAppointment] = useState<Appointment | null>(null);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+
   // Live Board State
   const [serverQueue, setServerQueue] = useState<Appointment[] | null>(null);
   const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'fallback'>('connecting');
@@ -303,8 +312,28 @@ export const Appointments = () => {
 
     const avgWaitMins = countedPatients > 0 ? Math.round(totalWaitMins / countedPatients) : 0;
 
-    return { total, present, inVisit, finished, absent, avgWaitMins };
-  }, [allAppointments, selectedDay, selectedDoctorId, nowTime]);
+    // Financial breakdown for today
+    let todaySettledAmount = 0;
+    let todayPendingAmount = 0;
+
+    todayList.forEach(apt => {
+      if (apt.status === 'cancelled') return;
+      const aptPayments = payments.filter(p => p.appointment_uuid === apt.uuid);
+      const totalPaid = aptPayments.reduce((sum, p) => sum + p.amount, 0);
+      const totalDiscount = aptPayments.reduce((sum, p) => sum + (p.discount || 0), 0) + (apt.discount || 0);
+      const grossPrice = apt.services.reduce((sum, s) => {
+        const r = allReasons.find(reason => reason.uuid === s.reason_id);
+        return sum + (r ? r.price * (s.quantity || 1) : 0);
+      }, 0);
+      const netPayable = Math.max(0, grossPrice - totalDiscount);
+      const remaining = Math.max(0, netPayable - totalPaid);
+
+      todaySettledAmount += totalPaid;
+      todayPendingAmount += remaining;
+    });
+
+    return { total, present, inVisit, finished, absent, avgWaitMins, todaySettledAmount, todayPendingAmount };
+  }, [allAppointments, payments, allReasons, selectedDay, selectedDoctorId, nowTime]);
 
   // Helper: Calculate wait duration in minutes since arrival
   const getWaitDurationMinutes = (apt: Appointment) => {
@@ -327,6 +356,39 @@ export const Appointments = () => {
       return Math.floor((arrivalMs - scheduledMs) / 60000);
     }
     return 0;
+  };
+
+  // Helper: Calculate appointment financial breakdown
+  const getAppointmentFinancials = useCallback((apt: Appointment) => {
+    const aptPayments = payments.filter(p => p.appointment_uuid === apt.uuid);
+    const totalPaid = aptPayments.reduce((sum, p) => sum + p.amount, 0);
+    const totalDiscount = aptPayments.reduce((sum, p) => sum + (p.discount || 0), 0) + (apt.discount || 0);
+    const grossPrice = apt.services.reduce((sum, s) => {
+      const r = allReasons.find(reason => reason.uuid === s.reason_id);
+      return sum + (r ? r.price * (s.quantity || 1) : 0);
+    }, 0);
+    const netPayable = Math.max(0, grossPrice - totalDiscount);
+    const balanceRemaining = Math.max(0, netPayable - totalPaid);
+    const isPaidInFull = (totalPaid >= netPayable && netPayable > 0) || (grossPrice === 0 && totalDiscount === 0);
+    const isPartiallyPaid = totalPaid > 0 && balanceRemaining > 0;
+    const isUnpaid = totalPaid === 0;
+
+    return {
+      grossPrice,
+      totalDiscount,
+      netPayable,
+      totalPaid,
+      balanceRemaining,
+      isPaidInFull,
+      isPartiallyPaid,
+      isUnpaid,
+      paymentsCount: aptPayments.length
+    };
+  }, [payments, allReasons]);
+
+  const openCheckoutModal = (apt: Appointment) => {
+    setCheckoutAppointment(apt);
+    setIsCheckoutModalOpen(true);
   };
 
   // --- Actions Handler (No optimistic UI updates - waits for server/WS update) ---
@@ -385,6 +447,11 @@ export const Appointments = () => {
       status: '0',
       visit_ended_at: new Date().toISOString()
     });
+    const apt = currentAppointmentsList.find(a => a.uuid === uuid);
+    if (apt) {
+      setCheckoutAppointment(apt);
+      setIsCheckoutModalOpen(true);
+    }
   };
 
   // 5. Open Interrupt Modal (قطع جلسه)
@@ -784,6 +851,7 @@ export const Appointments = () => {
                 <th className="px-5 py-4 text-center bg-inherit">ساعت نوبت</th>
                 <th className="px-5 py-4 bg-inherit">شاخص‌های عملیاتی و وضعیت</th>
                 <th className="px-5 py-4 bg-inherit">خدمات (تعداد)</th>
+                <th className="px-5 py-4 text-center bg-inherit">وضعیت تسویه</th>
                 <th className="px-5 py-4 text-center bg-inherit">عملیات</th>
               </tr>
             </thead>
@@ -793,7 +861,9 @@ export const Appointments = () => {
                 const latenessMins = getLatenessMinutes(apt);
                 const isCurrentVisit = apt.status === '3' || apt.status === 'in_visit';
                 const isPresent = apt.status === '4' || apt.status === 'present';
+                const isFinished = apt.status === '0' || apt.status === 'finished';
                 const isLoadingThisAction = loadingActionId === apt.uuid;
+                const fin = getAppointmentFinancials(apt);
 
                 return (
                   <tr 
@@ -897,6 +967,58 @@ export const Appointments = () => {
                       </div>
                     </td>
 
+                    {/* Payment & Settlement Status Column */}
+                    <td className="px-4 py-4 text-center">
+                      {(() => {
+                        if (apt.status === 'cancelled') {
+                          return <span className="text-[10px] text-gray-400 font-bold">لغوشده</span>;
+                        }
+                        if (fin.isPaidInFull) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => openCheckoutModal(apt)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:scale-105 transition-transform"
+                              title="مشاهده فاکتور و جزئیات تسویه"
+                            >
+                              <CheckCheck size={12} className="text-emerald-600 dark:text-emerald-400" />
+                              <span>تسویه کامل ({formatCurrency(fin.totalPaid)})</span>
+                            </button>
+                          );
+                        }
+                        if (fin.isPartiallyPaid) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => openCheckoutModal(apt)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:scale-105 transition-transform"
+                              title="تکمیل تسویه نوبت"
+                            >
+                              <Clock size={12} className="text-amber-600 dark:text-amber-400" />
+                              <span>مانده: {formatCurrency(fin.balanceRemaining)}</span>
+                            </button>
+                          );
+                        }
+                        // Unpaid
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => openCheckoutModal(apt)}
+                            className={clsx(
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black transition-all active:scale-95",
+                              isFinished
+                                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+                            )}
+                            title="ثبت تسویه و صدور فاکتور"
+                          >
+                            <Receipt size={12} />
+                            <span>{fin.netPayable > 0 ? `تسویه (${formatCurrency(fin.netPayable)})` : 'تسویه حساب'}</span>
+                          </button>
+                        );
+                      })()}
+                    </td>
+
                     {/* Inline Primary Action Button + Overflow Menu */}
                     <td className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
@@ -935,6 +1057,18 @@ export const Appointments = () => {
                           </button>
                         )}
 
+                        {isFinished && !fin.isPaidInFull && (
+                          <button 
+                            disabled={isLoadingThisAction}
+                            onClick={() => openCheckoutModal(apt)} 
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                            title="تسویه حساب سریع"
+                          >
+                            <Receipt size={14} />
+                            تسویه حساب
+                          </button>
+                        )}
+
                         {/* Overflow Menu "⋮" */}
                         <div className="relative inline-block text-right">
                           <button 
@@ -946,7 +1080,7 @@ export const Appointments = () => {
                                 setMenuAnchor(null);
                               } else {
                                 const rect = e.currentTarget.getBoundingClientRect();
-                                const dropdownHeight = 140;
+                                const dropdownHeight = 160;
                                 const spaceBelow = window.innerHeight - rect.bottom;
                                 const showAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
                                 const top = showAbove ? rect.top - dropdownHeight - 4 : rect.bottom + 4;
@@ -967,7 +1101,7 @@ export const Appointments = () => {
                 );
               }) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center text-gray-400 dark:text-gray-600 font-bold italic">
+                  <td colSpan={8} className="px-6 py-16 text-center text-gray-400 dark:text-gray-600 font-bold italic">
                     نوبتی برای این تاریخ ثبت نشده است.
                   </td>
                 </tr>
@@ -992,8 +1126,21 @@ export const Appointments = () => {
             />
             <div 
               style={{ top: `${menuAnchor.top}px`, left: `${menuAnchor.left}px` }}
-              className="fixed w-36 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-50 text-right text-xs font-bold divide-y divide-gray-100 dark:divide-gray-700/60 animate-in fade-in zoom-in-95"
+              className="fixed w-44 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-50 text-right text-xs font-bold divide-y divide-gray-100 dark:divide-gray-700/60 animate-in fade-in zoom-in-95"
             >
+              {/* Settle & Checkout Action */}
+              <button
+                onClick={() => {
+                  setOpenMenuUuid(null);
+                  setMenuAnchor(null);
+                  openCheckoutModal(apt);
+                }}
+                className="w-full px-3 py-2 text-right text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2 transition-colors"
+              >
+                <Receipt size={14} className="text-emerald-600 dark:text-emerald-400" />
+                <span>تسویه و صدور فاکتور</span>
+              </button>
+
               {/* Present status overflow options */}
               {(apt.status === '4' || apt.status === 'present') && (
                 <button
@@ -1193,6 +1340,24 @@ export const Appointments = () => {
           </div>
         </div>
       )}
+
+      {/* --- APPOINTMENT CHECKOUT & PAYMENT MODAL --- */}
+      <AppointmentPaymentModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => {
+          setIsCheckoutModalOpen(false);
+          setCheckoutAppointment(null);
+        }}
+        appointment={checkoutAppointment}
+        doctor={doctors.find(d => d.id === checkoutAppointment?.doctor_id)}
+        patient={patients.find(p => p.uuid === checkoutAppointment?.patient_id)}
+        insurance={insurances.find(i => i.id === patients.find(p => p.uuid === checkoutAppointment?.patient_id)?.insurance_id)}
+        allReasons={allReasons}
+        existingPayments={payments.filter(p => p.appointment_uuid === checkoutAppointment?.uuid)}
+        onAddPayment={addPayment}
+        onUpdateAppointmentStatus={(id, status) => updateAppointment(id, { status })}
+        getReasonTitle={getReasonTitle}
+      />
 
       {/* --- DOCTOR ARRIVAL DELAY MODAL --- */}
       <DoctorDelayModal
