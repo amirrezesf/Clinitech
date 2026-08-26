@@ -584,22 +584,22 @@ export const Appointments = () => {
       </div>
 
       {/* OPERATIONAL DAY BOARD TABLE */}
-      <div className="glass-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm min-h-[420px] bg-white dark:bg-gray-900 pb-20">
-        <div className="overflow-x-auto">
+      <div className="glass-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="overflow-x-auto overflow-y-auto max-h-[540px] scrollbar-thin">
           <table className="w-full text-right text-xs">
-            <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 font-black uppercase tracking-wider">
+            <thead className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 font-black uppercase tracking-wider shadow-xs">
               <tr>
-                <th className="px-3 py-4 w-10 text-center">
+                <th className="px-3 py-4 w-10 text-center bg-inherit">
                   <button onClick={toggleSelectAll} className="text-primary-600 flex items-center justify-center mx-auto">
                       {selectedIds.length === currentAppointmentsList.length && currentAppointmentsList.length > 0 ? <CheckSquare size={18}/> : selectedIds.length > 0 ? <MinusSquare size={18}/> : <Square size={18} className="text-gray-300 dark:text-gray-600" />}
                   </button>
                 </th>
-                <th className="px-4 py-4 w-12 text-center">اولویت</th>
-                <th className="px-5 py-4">بیمار</th>
-                <th className="px-5 py-4 text-center">ساعت نوبت</th>
-                <th className="px-5 py-4">شاخص‌های عملیاتی و وضعیت</th>
-                <th className="px-5 py-4">خدمات (تعداد)</th>
-                <th className="px-5 py-4 text-center">عملیات</th>
+                <th className="px-4 py-4 w-12 text-center bg-inherit">اولویت</th>
+                <th className="px-5 py-4 bg-inherit">بیمار</th>
+                <th className="px-5 py-4 text-center bg-inherit">ساعت نوبت</th>
+                <th className="px-5 py-4 bg-inherit">شاخص‌های عملیاتی و وضعیت</th>
+                <th className="px-5 py-4 bg-inherit">خدمات (تعداد)</th>
+                <th className="px-5 py-4 text-center bg-inherit">عملیات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">

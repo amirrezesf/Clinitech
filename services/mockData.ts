@@ -213,6 +213,40 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
     for_date: setTime(11, 45),
     discount: 0,
     created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-urgent-1",
+    patient_id: "p3",
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }],
+    status: '4', // present (urgent)
+    for_date: setTime(12, 30),
+    actual_arrival_at: minutesAgo(5),
+    is_urgent: true,
+    discount: 0,
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: "a-recurring-1",
+    patient_id: "p1",
+    doctor_id: 1,
+    services: [{ reason_id: "r1", quantity: 1 }],
+    status: '1', // pending
+    for_date: setTime(16, 0),
+    discount: 0,
+    created_at: new Date().toISOString(),
+    recurring_id: "rec-ortho-101",
+    recurring_title: "درمان جامع ارتودنسی"
+  },
+  {
+    uuid: "a-pending-3",
+    patient_id: "p2",
+    doctor_id: 1,
+    services: [{ reason_id: "r3", quantity: 1 }, { reason_id: "r4", quantity: 1 }],
+    status: '1', // pending
+    for_date: setTime(17, 15),
+    discount: 0,
+    created_at: new Date().toISOString()
   }
 ];
 
