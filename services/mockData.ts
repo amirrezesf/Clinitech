@@ -289,25 +289,189 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
   }
 ];
 
-export const MOCK_PAYMENTS: Payment[] = MOCK_APPOINTMENTS
-  .filter(apt => apt.status === '0')
-  .map(apt => {
-    const totalPrice = apt.services.reduce((sum, s) => {
-        const reason = MOCK_REASONS.find(r => r.uuid === s.reason_id);
-        return sum + ((reason?.price || 0) * s.quantity);
-    }, 0);
-    
-    return {
-        uuid: `pay-${apt.uuid}`,
-        amount: totalPrice - apt.discount,
-        appointment_uuid: apt.uuid,
-        patient_id: apt.patient_id,
-        doctor_id: apt.doctor_id,
-        date: apt.for_date,
-        description: 'پرداخت ویزیت'
-    };
-  });
+export const MOCK_PAYMENTS: Payment[] = [
+  ...MOCK_APPOINTMENTS
+    .filter(apt => apt.status === '0')
+    .map(apt => {
+      const totalPrice = apt.services.reduce((sum, s) => {
+          const reason = MOCK_REASONS.find(r => r.uuid === s.reason_id);
+          return sum + ((reason?.price || 0) * s.quantity);
+      }, 0);
+      
+      return {
+          uuid: `pay-${apt.uuid}`,
+          amount: totalPrice - apt.discount,
+          appointment_uuid: apt.uuid,
+          patient_id: apt.patient_id,
+          doctor_id: apt.doctor_id,
+          date: apt.for_date,
+          payment_method: 'pos' as const,
+          reference_number: '10984572',
+          description: 'پرداخت ویزیت و خدمات'
+      };
+    }),
+  {
+    uuid: 'pay-inst-down-1',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1500000,
+    date: new Date(Date.now() - 35 * 86400000).toISOString(),
+    payment_method: 'pos' as const,
+    reference_number: '88432190',
+    description: 'پیش‌پرداخت طرح اقساط ارتودنسی و درمان جامع'
+  },
+  {
+    uuid: 'pay-inst-1',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1200000,
+    date: new Date(Date.now() - 5 * 86400000).toISOString(),
+    payment_method: 'pos' as const,
+    reference_number: '77651234',
+    installment_uuid: 'inst-p1-1',
+    description: 'وصول قسط اول ارتودنسی و براکت‌گذاری'
+  },
+  {
+    uuid: 'pay-inst-2',
+    patient_id: 'p2',
+    doctor_id: 2,
+    amount: 900000,
+    date: new Date(Date.now() - 20 * 86400000).toISOString(),
+    payment_method: 'card_to_card' as const,
+    reference_number: '66549812',
+    installment_uuid: 'inst-p2-1',
+    description: 'وصول قسط اول عصب‌کشی و ترمیم تخصصی'
+  }
+];
 
-export const MOCK_INSTALLMENTS: Installment[] = [];
+export const MOCK_INSTALLMENTS: Installment[] = [
+  // Plan 1: محمد محمدی (Dr. 1) - Orthodontics 4 installments
+  {
+    uuid: 'inst-p1-1',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1200000,
+    due_date: new Date(Date.now() - 5 * 86400000).toISOString(),
+    status: 'paid',
+    description: 'درمان جامع ارتودنسی (قسط ۱ از ۴)',
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p1-2',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1200000,
+    due_date: new Date(Date.now() + 15 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'درمان جامع ارتودنسی (قسط ۲ از ۴)',
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p1-3',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1200000,
+    due_date: new Date(Date.now() + 45 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'درمان جامع ارتودنسی (قسط ۳ از ۴)',
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p1-4',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 1200000,
+    due_date: new Date(Date.now() + 75 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'درمان جامع ارتودنسی (قسط ۴ از ۴)',
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString()
+  },
+
+  // Plan 2: زهرا کریمی (Dr. 2) - Dental Root Canal & Crown 3 installments
+  {
+    uuid: 'inst-p2-1',
+    patient_id: 'p2',
+    doctor_id: 2,
+    amount: 900000,
+    due_date: new Date(Date.now() - 20 * 86400000).toISOString(),
+    status: 'paid',
+    description: 'عصب‌کشی تخصصی و روکش سرامیکی (قسط ۱ از ۳)',
+    created_at: new Date(Date.now() - 50 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p2-2',
+    patient_id: 'p2',
+    doctor_id: 2,
+    amount: 900000,
+    due_date: new Date(Date.now() - 4 * 86400000).toISOString(), // Overdue
+    status: 'pending',
+    description: 'عصب‌کشی تخصصی و روکش سرامیکی (قسط ۲ از ۳)',
+    created_at: new Date(Date.now() - 50 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p2-3',
+    patient_id: 'p2',
+    doctor_id: 2,
+    amount: 900000,
+    due_date: new Date(Date.now() + 26 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'عصب‌کشی تخصصی و روکش سرامیکی (قسط ۳ از ۳)',
+    created_at: new Date(Date.now() - 50 * 86400000).toISOString()
+  },
+
+  // Plan 3: رضا نوروزی (Dr. 3) - Skin / Laser package 2 installments
+  {
+    uuid: 'inst-p3-1',
+    patient_id: 'p3',
+    doctor_id: 3,
+    amount: 850000,
+    due_date: new Date(Date.now() + 8 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'پکیج لیزر و جوانسازی پوست (قسط ۱ از ۲)',
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p3-2',
+    patient_id: 'p3',
+    doctor_id: 3,
+    amount: 850000,
+    due_date: new Date(Date.now() + 38 * 86400000).toISOString(),
+    status: 'pending',
+    description: 'پکیج لیزر و جوانسازی پوست (قسط ۲ از ۲)',
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString()
+  },
+
+  // Pay Later Promises (وعده پرداخت موکول به بعد / تسویه سررسید)
+  {
+    uuid: 'inst-p3-def-1',
+    patient_id: 'p3',
+    doctor_id: 1,
+    amount: 450000,
+    due_date: new Date(Date.now() + 3 * 86400000).toISOString(), // Due in 3 days
+    status: 'pending',
+    description: 'وعده پرداخت مابقی تست ورزش و اکوکاردیوگرافی (تحویل جواب آزمایش)',
+    created_at: new Date().toISOString()
+  },
+  {
+    uuid: 'inst-p4-def-1',
+    patient_id: 'p4',
+    doctor_id: 1,
+    amount: 300000,
+    due_date: new Date(Date.now() - 2 * 86400000).toISOString(), // Overdue by 2 days
+    status: 'pending',
+    description: 'وعده پرداخت مانده ویزیت و هولتر (موعد جلسه بعدی درمان)',
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString()
+  },
+  {
+    uuid: 'inst-p5-def-1',
+    patient_id: 'p5',
+    doctor_id: 3,
+    amount: 600000,
+    due_date: new Date(Date.now() + 12 * 86400000).toISOString(), // Due in 12 days
+    status: 'pending',
+    description: 'وعده پرداخت مابقی هزینه بوتاکس و مزوتراپی',
+    created_at: new Date().toISOString()
+  }
+];
 export const MOCK_EXPENSES: Expense[] = [];
 export const MOCK_AUDIT_LOGS: AuditLog[] = [];
