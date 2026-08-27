@@ -11,6 +11,7 @@ import {
   Receipt, SlidersHorizontal
 } from 'lucide-react';
 import { PersianDatePicker } from '../components/PersianDatePicker';
+import { AppointmentPaymentModal } from '../components/AppointmentPaymentModal';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -37,15 +38,24 @@ export const Payments = () => {
   const { user } = useAuth();
 
   const location = useLocation();
+  const allowedDoctors = useMemo(() => {
+    if (!user?.allowedDoctorIds || user.allowedDoctorIds.length === 0) return doctors;
+    return doctors.filter(d => user.allowedDoctorIds.includes(d.id));
+  }, [doctors, user]);
+
   const [activeTab, setActiveTab] = useState<PaymentTab>('payments');
   const [search, setSearch] = useState('');
   const [filterDoctorId, setFilterDoctorId] = useState<string>('all');
   const [installmentStatusFilter, setInstallmentStatusFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
   const [installmentTypeFilter, setInstallmentTypeFilter] = useState<'all' | 'schedule' | 'pay_later'>('all');
 
-  // Modals
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
+  // Shared Payment Modal State
+  const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
+  const [sharedModalMode, setSharedModalMode] = useState<'immediate' | 'installments'>('immediate');
+  const [sharedModalPatientId, setSharedModalPatientId] = useState<string | null>(null);
+  const [sharedModalAppointment, setSharedModalAppointment] = useState<any>(null);
+
+  // Other Modals (Receipt viewing and quick installment collection)
   const [viewingPayment, setViewingPayment] = useState<Payment | null>(null);
   const [collectingInstallment, setCollectingInstallment] = useState<Installment | null>(null);
 
@@ -54,222 +64,23 @@ export const Payments = () => {
   const [collectDiscount, setCollectDiscount] = useState('0');
   const [collectNotes, setCollectNotes] = useState('');
 
-  // Searchable Dropdown State
-  const [patientSearch, setPatientSearch] = useState('');
-  const [showPatientList, setShowPatientList] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const allowedDoctors = doctors.filter(d => user?.allowedDoctorIds?.includes(d.id));
-
-  // Payment Form States
-  const [formDoctorId, setFormDoctorId] = useState<string>(allowedDoctors[0]?.id.toString() || '');
-  const [selectedPatientId, setSelectedPatientId] = useState('');
-  const [amount, setAmount] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('pos');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [receiptImage, setReceiptImage] = useState<string>('');
-  const [appointmentId, setAppointmentId] = useState<string | undefined>(undefined);
-
-  // Merged Installment / Deferred Form States
-  const [instTotalAmount, setInstTotalAmount] = useState('');
-  const [instDownPayment, setInstDownPayment] = useState('0');
-  const [instDownPaymentMethod, setInstDownPaymentMethod] = useState<'pos' | 'cash' | 'card_to_card'>('pos');
-  const [instCount, setInstCount] = useState(3);
-  const [instInterval, setInstInterval] = useState<InstallmentInterval>('1_month');
-  const [instStartDate, setInstStartDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  });
-  const [instDesc, setInstDesc] = useState('');
-
-  // Calculate patient overall financial balance
-  const selectedPatientBalance = useMemo(() => {
-    if (!selectedPatientId) return { gross: 0, paid: 0, discount: 0, remaining: 0 };
-    
-    // Sum services from patient's appointments
-    const patientApts = appointments.filter(a => a.patient_id === selectedPatientId);
-    let totalServices = 0;
-    let aptDiscounts = 0;
-    patientApts.forEach(apt => {
-      aptDiscounts += (apt.discount || 0);
-      apt.services.forEach(s => {
-        const r = allReasons.find(reason => reason.uuid === s.reason_id);
-        totalServices += (r ? r.price * (s.quantity || 1) : 0);
-      });
-    });
-
-    // Sum all payments made by patient
-    const patientPays = payments.filter(p => p.patient_id === selectedPatientId);
-    const totalPaid = patientPays.reduce((sum, p) => sum + p.amount, 0);
-    const paymentDiscounts = patientPays.reduce((sum, p) => sum + (p.discount || 0), 0);
-
-    const totalDiscount = aptDiscounts + paymentDiscounts;
-    const netBill = Math.max(0, totalServices - totalDiscount);
-    const remaining = Math.max(0, netBill - totalPaid);
-
-    return {
-      gross: totalServices,
-      discount: totalDiscount,
-      paid: totalPaid,
-      remaining
-    };
-  }, [selectedPatientId, appointments, allReasons, payments]);
-
-  // When patient is selected, auto-set amount to the patient remaining balance
-  useEffect(() => {
-    if (selectedPatientId && selectedPatientBalance.remaining > 0) {
-      if (isPaymentModalOpen && !amount) {
-        setAmount(selectedPatientBalance.remaining.toString());
-      }
-      if (isInstallmentModalOpen && !instTotalAmount) {
-        setInstTotalAmount(selectedPatientBalance.remaining.toString());
-      }
-    }
-  }, [selectedPatientId, selectedPatientBalance.remaining, isPaymentModalOpen, isInstallmentModalOpen]);
-
   useEffect(() => {
     if (location.state && location.state.openPaymentModal) {
-        setIsPaymentModalOpen(true);
-        if (location.state.patientId) {
-            setSelectedPatientId(location.state.patientId);
-            const p = patients.find(pat => pat.uuid === location.state.patientId);
-            if (p) setPatientSearch(p.name);
-        }
-        if (location.state.appointmentId) {
-            setAppointmentId(location.state.appointmentId);
-            const apt = appointments.find(a => a.uuid === location.state.appointmentId);
-            if (apt) {
-              setFormDoctorId(apt.doctor_id.toString());
-            }
-        }
-        if (location.state.amount) setAmount(location.state.amount.toString());
-        if (location.state.description) setDescription(location.state.description);
-        window.history.replaceState({}, document.title);
-    }
-  }, [location, patients, appointments]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowPatientList(false);
+      setSharedModalMode('immediate');
+      if (location.state.patientId) {
+        setSharedModalPatientId(location.state.patientId);
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleAddPayment = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!selectedPatientId || !amount) return;
-
-      const finalAmount = parseFloat(amount) - (parseFloat(discount) || 0);
-      const patientName = getPatientName(selectedPatientId);
-
-      const newPayment: Payment = {
-          uuid: `pay-${Date.now()}`,
-          patient_id: selectedPatientId,
-          doctor_id: parseInt(formDoctorId),
-          appointment_uuid: appointmentId,
-          amount: finalAmount,
-          discount: parseFloat(discount) || 0,
-          date: new Date(date).toISOString(),
-          payment_method: paymentMethod,
-          description: description || `تسویه حساب بیمار (${patientName})`,
-          receipt_image: receiptImage
-      };
-
-      addPayment(newPayment);
-      setIsPaymentModalOpen(false);
-      resetForms();
-      toast.success('تراکنش با موفقیت در صندوق ثبت شد.');
-  };
-
-  const handleCreateInstallments = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPatientId || !instTotalAmount || !instCount) {
-        toast.error('لطفا تمام فیلدها را تکمیل کنید.');
-        return;
-    }
-
-    const totalNum = parseFloat(instTotalAmount) || 0;
-    const downNum = Math.min(totalNum, Math.max(0, parseFloat(instDownPayment) || 0));
-    const remainToSplit = Math.max(0, totalNum - downNum);
-    const amountPerInstallment = Math.round(remainToSplit / instCount);
-    const startDate = new Date(instStartDate);
-    const toastId = toast.loading('در حال ثبت تعهدات مالی...');
-
-    const patientName = getPatientName(selectedPatientId);
-    const baseDescription = `طرح درمان و تسویه حساب ${patientName}`;
-    const finalDescription = instDesc ? `${baseDescription} - ${instDesc}` : baseDescription;
-
-    // 1. If down payment > 0, record it as a direct payment
-    if (downNum > 0) {
-      const downPaymentObj: Payment = {
-        uuid: `pay-${Date.now()}-inst-down`,
-        patient_id: selectedPatientId,
-        doctor_id: parseInt(formDoctorId),
-        amount: downNum,
-        date: new Date().toISOString(),
-        payment_method: instDownPaymentMethod,
-        description: instCount === 1 
-          ? `پیش‌پرداخت نوبت (مانده به سررسید ${formatJalaliDate(instStartDate)} موکول شد)`
-          : `پیش‌پرداخت طرح اقساط (${instCount} مرحله‌ای) - ${finalDescription}`
-      };
-      await addPayment(downPaymentObj);
-    }
-
-    // 2. Generate and save installments / promise
-    for (let i = 0; i < instCount; i++) {
-        const dueDate = new Date(startDate);
-        if (instCount > 1) {
-          if (instInterval === '15_days') {
-            dueDate.setDate(startDate.getDate() + (i * 15));
-          } else if (instInterval === '1_month') {
-            dueDate.setMonth(startDate.getMonth() + i);
-          } else if (instInterval === '45_days') {
-            dueDate.setDate(startDate.getDate() + (i * 45));
-          } else if (instInterval === '2_months') {
-            dueDate.setMonth(startDate.getMonth() + (i * 2));
-          }
+      if (location.state.appointmentId) {
+        const apt = appointments.find(a => a.uuid === location.state.appointmentId);
+        if (apt) {
+          setSharedModalAppointment(apt);
+          setSharedModalPatientId(apt.patient_id);
         }
-
-        let curAmount = amountPerInstallment;
-        if (i === instCount - 1) {
-          curAmount = remainToSplit - (amountPerInstallment * (instCount - 1));
-        }
-
-        const isSingle = instCount === 1;
-        const itemDesc = isSingle 
-          ? `وعده پرداخت موکول به بعد: ${finalDescription}` 
-          : `${finalDescription} (قسط ${i + 1} از ${instCount})`;
-
-        const newInst: Installment = {
-            uuid: `inst-${Date.now()}-${i}${isSingle ? '-def' : ''}`,
-            patient_id: selectedPatientId,
-            doctor_id: parseInt(formDoctorId),
-            amount: curAmount,
-            due_date: dueDate.toISOString(),
-            status: 'pending',
-            description: itemDesc,
-            created_at: new Date().toISOString()
-        };
-        await addInstallment(newInst);
+      }
+      setIsSharedModalOpen(true);
+      window.history.replaceState({}, document.title);
     }
-
-    toast.success(
-      instCount === 1 
-        ? `وعده پرداخت به ارزش ${formatCurrency(remainToSplit)} با موفقیت ثبت شد.` 
-        : `${instCount} قسط به ارزش کل ${formatCurrency(remainToSplit)} با موفقیت ثبت شد.`, 
-      { id: toastId }
-    );
-    setIsInstallmentModalOpen(false);
-    setActiveTab('installments');
-    resetForms();
-  };
+  }, [location, appointments]);
 
   const handleOpenCollectModal = (inst: Installment) => {
     setCollectingInstallment(inst);
@@ -301,43 +112,6 @@ export const Payments = () => {
     await updateInstallment(collectingInstallment.uuid, { status: 'paid' });
     toast.success(`وصول مبلغ ${formatCurrency(finalCollectAmount)} با موفقیت در صندوق ثبت گردید.`);
     setCollectingInstallment(null);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error('حجم تصویر نباید بیشتر از ۲ مگابایت باشد.');
-            return;
-        }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setReceiptImage(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-    }
-  };
-
-  const resetForms = () => {
-      setFormDoctorId(allowedDoctors[0]?.id.toString() || '');
-      setSelectedPatientId('');
-      setAppointmentId(undefined);
-      setAmount('');
-      setDiscount('');
-      setPaymentMethod('pos');
-      setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
-      setReceiptImage('');
-      setInstTotalAmount('');
-      setInstDownPayment('0');
-      setInstDownPaymentMethod('pos');
-      setInstCount(3);
-      setInstInterval('1_month');
-      const nextDate = new Date();
-      nextDate.setDate(nextDate.getDate() + 7);
-      setInstStartDate(nextDate.toISOString().split('T')[0]);
-      setInstDesc('');
-      setPatientSearch('');
   };
 
   const getReasonText = (p: Payment) => {
@@ -447,14 +221,24 @@ export const Payments = () => {
         </div>
         <div className="flex gap-2 flex-wrap">
             <button 
-              onClick={() => { resetForms(); setIsInstallmentModalOpen(true); }} 
+              onClick={() => {
+                setSharedModalMode('installments');
+                setSharedModalPatientId(null);
+                setSharedModalAppointment(null);
+                setIsSharedModalOpen(true);
+              }} 
               className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 px-3.5 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-xs transition-all font-black text-xs"
             >
                 <Layers size={16} className="text-blue-600 dark:text-blue-400" />
                 <span>تعریف اقساط / وعده معوق</span>
             </button>
             <button 
-              onClick={() => { resetForms(); setIsPaymentModalOpen(true); }} 
+              onClick={() => {
+                setSharedModalMode('immediate');
+                setSharedModalPatientId(null);
+                setSharedModalAppointment(null);
+                setIsSharedModalOpen(true);
+              }} 
               className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-md shadow-primary-600/20 transition-all font-black text-xs"
             >
                 <Plus size={16} />
@@ -1021,297 +805,22 @@ export const Payments = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: PAYMENT MODAL (ADD NEW DIRECT TRANSACTION) */}
+      {/* SHARED APPOINTMENT & DIRECT PAYMENT / INSTALLMENT MODAL */}
       {/* ========================================================================= */}
-      {isPaymentModalOpen && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in no-print !mt-0">
-             <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95">
-                 <div className="bg-gradient-to-r from-primary-600 to-indigo-600 p-5 text-white relative">
-                     <button onClick={() => setIsPaymentModalOpen(false)} className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"><X size={18} /></button>
-                     <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm"><CreditCard size={22} /></div>
-                         <div>
-                          <h3 className="text-lg font-black">ثبت دریافت وجه و تسویه حساب</h3>
-                          <p className="text-primary-100 text-xs font-bold">انتساب پرداخت به پرونده بیمار</p>
-                         </div>
-                     </div>
-                 </div>
-                 <form onSubmit={handleAddPayment} className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs text-right">
-                     
-                     {/* Method selector */}
-                     <div className="space-y-1">
-                        <label className="font-black text-gray-700 dark:text-gray-200">روش دریافت وجه:</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { id: 'pos', label: 'کارت‌خوان', icon: CreditCard },
-                            { id: 'cash', label: 'وجه نقد', icon: DollarSign },
-                            { id: 'card_to_card', label: 'کارت به کارت', icon: Smartphone }
-                          ].map(m => {
-                            const Icon = m.icon;
-                            return (
-                              <button
-                                key={m.id}
-                                type="button"
-                                onClick={() => setPaymentMethod(m.id as any)}
-                                className={clsx(
-                                  "py-2 px-2 rounded-xl border text-xs font-black transition-all flex items-center justify-center gap-1",
-                                  paymentMethod === m.id ? "bg-primary-600 border-primary-600 text-white shadow-xs" : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                                )}
-                              >
-                                <Icon size={13} /> {m.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                     </div>
-
-                     {/* Patient Selector */}
-                     <div className="space-y-1" ref={dropdownRef}>
-                        <label className="font-black text-gray-700 dark:text-gray-200">بیمار (پرونده طرف حساب):</label>
-                        <div className="relative">
-                            <input 
-                              type="text" 
-                              className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-bold text-xs" 
-                              placeholder="جستجو و انتخاب بیمار..." 
-                              value={patientSearch} 
-                              onChange={(e) => { setPatientSearch(e.target.value); setSelectedPatientId(''); setShowPatientList(true); }} 
-                              onFocus={() => setShowPatientList(true)} 
-                              readOnly={!!appointmentId} 
-                            />
-                            {showPatientList && !appointmentId && (
-                              <div className="absolute top-full right-0 z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl max-h-44 overflow-y-auto">
-                                {patients.filter(p => p.name.includes(patientSearch) || p.phone_number.includes(patientSearch)).map(p => (
-                                  <div key={p.uuid} onClick={() => { setSelectedPatientId(p.uuid); setPatientSearch(p.name); setShowPatientList(false); }} className="px-3.5 py-2.5 hover:bg-primary-50 dark:hover:bg-primary-900/40 cursor-pointer flex justify-between items-center text-xs border-b border-gray-100 dark:border-gray-700 last:border-0">
-                                    <span className="font-bold dark:text-white">{p.name}</span>
-                                    <span className="text-gray-400 text-[10px] dir-ltr font-black">{p.phone_number}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                        </div>
-                     </div>
-
-                     {/* Patient balance info banner */}
-                     {selectedPatientId && (
-                       <div className="p-3 bg-gray-50 dark:bg-gray-900/60 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                         <div>
-                           <span className="text-[10px] text-gray-400 font-bold block">وضعیت حساب بیمار:</span>
-                           <span className="font-bold text-gray-800 dark:text-gray-200 text-xs">
-                             {selectedPatientBalance.remaining > 0 
-                               ? `دارای ${formatCurrency(selectedPatientBalance.remaining)} مانده بدهی` 
-                               : 'حساب کاملاً تسویه است (۰ تومان)'}
-                           </span>
-                         </div>
-                         {selectedPatientBalance.remaining > 0 && (
-                           <button
-                             type="button"
-                             onClick={() => setAmount(selectedPatientBalance.remaining.toString())}
-                             className="px-2.5 py-1 bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 hover:bg-primary-100 rounded-lg text-[11px] font-black border border-primary-200 dark:border-primary-800 transition-all"
-                           >
-                             تسویه کل مانده
-                           </button>
-                         )}
-                       </div>
-                     )}
-
-                     {/* Doctor select */}
-                     <div className="space-y-1">
-                        <label className="font-black text-gray-700 dark:text-gray-200">پزشک معالج:</label>
-                        <div className="relative">
-                            <select className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none appearance-none dark:text-white font-bold text-xs" value={formDoctorId} onChange={(e) => setFormDoctorId(e.target.value)} disabled={!!appointmentId}>
-                                {allowedDoctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                            </select>
-                            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                        </div>
-                     </div>
-
-                     <div className="grid grid-cols-2 gap-2.5">
-                         <div className="space-y-1">
-                           <label className="font-black text-gray-700 dark:text-gray-200">مبلغ دریافتی (تومان):</label>
-                           <input required type="number" className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-black font-mono text-left dir-ltr text-xs" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                         </div>
-                         <div className="space-y-1">
-                           <label className="font-black text-gray-700 dark:text-gray-200">تخفیف موردی (تومان):</label>
-                           <input type="number" className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-bold font-mono text-left dir-ltr text-xs" value={discount} onChange={(e) => setDiscount(e.target.value)} />
-                         </div>
-                     </div>
-
-                     <div className="space-y-1">
-                        <label className="font-black text-gray-700 dark:text-gray-200">یادداشت و شرح پرداخت (اختیاری):</label>
-                        <input
-                          type="text"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="مثلاً: تسویه حساب نوبت، وجه بیعانه..."
-                          className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-bold text-xs"
-                        />
-                     </div>
-                     
-                     <PersianDatePicker label="تاریخ تراکنش" value={date} onChange={setDate} />
-
-                     <div className="space-y-1">
-                         <label className="font-black text-gray-700 dark:text-gray-200 flex items-center gap-1.5"><Camera size={13}/> تصویر فیش بانکی (اختیاری)</label>
-                         <div onClick={() => fileInputRef.current?.click()} className={clsx("border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center transition-all cursor-pointer group", receiptImage ? "border-primary-500 bg-primary-50/10" : "border-gray-200 dark:border-gray-700 hover:border-primary-400")}>
-                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-                            {receiptImage ? <img src={receiptImage} alt="Preview" className="w-full h-auto max-h-24 object-contain rounded-lg" /> : <><Upload className="text-gray-300 group-hover:text-primary-500 transition-colors" size={20} /><span className="text-[10px] text-gray-400 font-bold mt-1">بارگذاری تصویر فیش</span></>}
-                         </div>
-                     </div>
-
-                     <button type="submit" className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-black text-xs shadow-md shadow-primary-600/20 mt-1 transition-all">تایید و ثبت نهایی در صندوق</button>
-                 </form>
-             </div>
-         </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 4: INSTALLMENT / DEFERRED PROMISE CREATION MODAL */}
-      {/* ========================================================================= */}
-      {isInstallmentModalOpen && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in no-print !mt-0">
-            <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white relative">
-                    <button onClick={() => setIsInstallmentModalOpen(false)} className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"><X size={18} /></button>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md"><Layers size={22} /></div>
-                        <div>
-                          <h3 className="text-lg font-black">تعریف اقساط یا موکول به بعد</h3>
-                          <p className="text-blue-100 text-xs font-bold">تقسیط چندمرحله‌ای یا تعهد تک‌سررسید برای بیمار</p>
-                        </div>
-                    </div>
-                </div>
-                <form onSubmit={handleCreateInstallments} className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs text-right">
-                    
-                    {/* Select Number of Stages (1 = Pay Later Promise, 2+ = Regular Installments) */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <label className="font-black text-gray-700 dark:text-gray-200">نوع تعهد / تعداد اقساط:</label>
-                        <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
-                          {instCount === 1 ? 'تک‌پرداخت موکول به بعد' : `${instCount} قسط دوره‌ای`}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-1.5">
-                        {[
-                          { count: 1, label: '۱ (موکول به بعد)' },
-                          { count: 2, label: '۲ قسط' },
-                          { count: 3, label: '۳ قسط' },
-                          { count: 4, label: '۴ قسط' },
-                          { count: 6, label: '۶ قسط' }
-                        ].map(item => (
-                          <button
-                            key={item.count}
-                            type="button"
-                            onClick={() => setInstCount(item.count)}
-                            className={clsx(
-                              "py-2 rounded-xl border text-xs font-black transition-all",
-                              instCount === item.count
-                                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                                : "bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100"
-                            )}
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Patient search */}
-                    <div className="space-y-1" ref={dropdownRef}>
-                      <label className="font-black text-gray-700 dark:text-gray-200">انتخاب بیمار:</label>
-                      <div className="relative">
-                        <input 
-                          type="text" 
-                          className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-bold text-xs" 
-                          placeholder="جستجوی بیمار..." 
-                          value={patientSearch} 
-                          onChange={(e) => { setPatientSearch(e.target.value); setSelectedPatientId(''); setShowPatientList(true); }} 
-                          onFocus={() => setShowPatientList(true)} 
-                        />
-                        {showPatientList && (
-                          <div className="absolute top-full right-0 z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl max-h-44 overflow-y-auto">
-                            {patients.filter(p => p.name.includes(patientSearch)).map(p => (
-                              <div key={p.uuid} onClick={() => { setSelectedPatientId(p.uuid); setPatientSearch(p.name); setShowPatientList(false); }} className="px-3.5 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer flex justify-between items-center text-xs border-b border-gray-100 dark:border-gray-700 last:border-0 font-bold dark:text-white">
-                                <span>{p.name}</span>
-                                <span className="text-[10px] text-gray-400 font-black">{p.phone_number}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Patient balance info banner */}
-                    {selectedPatientId && (
-                       <div className="p-3 bg-gray-50 dark:bg-gray-900/60 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                         <div>
-                           <span className="text-[10px] text-gray-400 font-bold block">مانده کل پرونده:</span>
-                           <span className="font-bold text-gray-800 dark:text-gray-200 text-xs">
-                             {formatCurrency(selectedPatientBalance.remaining)}
-                           </span>
-                         </div>
-                         {selectedPatientBalance.remaining > 0 && (
-                           <button
-                             type="button"
-                             onClick={() => setInstTotalAmount(selectedPatientBalance.remaining.toString())}
-                             className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-lg text-[11px] font-black border border-blue-200 dark:border-blue-800 transition-all"
-                           >
-                             تنظیم مبلغ کل
-                           </button>
-                         )}
-                       </div>
-                    )}
-
-                    {/* Doctor select */}
-                    <div className="space-y-1">
-                      <label className="font-black text-gray-700 dark:text-gray-200">پزشک معالج:</label>
-                      <div className="relative">
-                        <select className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none appearance-none dark:text-white font-bold text-xs" value={formDoctorId} onChange={(e) => setFormDoctorId(e.target.value)}>
-                          {allowedDoctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                        <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1">
-                          <label className="font-black text-gray-700 dark:text-gray-200">مبلغ کل تعهد (تومان):</label>
-                          <input required type="number" className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-black font-mono text-left dir-ltr text-xs" value={instTotalAmount} onChange={(e) => setInstTotalAmount(e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="font-black text-gray-700 dark:text-gray-200">پیش‌پرداخت نقدی اولیه:</label>
-                          <input type="number" min="0" className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white font-bold font-mono text-left dir-ltr text-xs" value={instDownPayment} onChange={(e) => setInstDownPayment(e.target.value)} />
-                        </div>
-                    </div>
-
-                    {instCount > 1 && (
-                      <div className="space-y-1">
-                        <label className="font-black text-gray-700 dark:text-gray-200">فواصل زمانی بین اقساط:</label>
-                        <select className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-bold dark:text-white text-xs" value={instInterval} onChange={(e) => setInstInterval(e.target.value as InstallmentInterval)}>
-                          <option value="15_days">هر ۱۵ روز یکبار</option>
-                          <option value="1_month">ماهانه (هر ۳۰ روز)</option>
-                          <option value="45_days">هر ۴۵ روز یکبار</option>
-                          <option value="2_months">هر ۲ ماه یکبار</option>
-                        </select>
-                      </div>
-                    )}
-
-                    <PersianDatePicker 
-                      label={instCount === 1 ? "تاریخ موعد پرداخت مانده" : "تاریخ اولین سررسید قسط"} 
-                      value={instStartDate} 
-                      onChange={setInstStartDate} 
-                    />
-
-                    <div className="space-y-1">
-                      <label className="font-black text-gray-700 dark:text-gray-200">توافق و توضیحات تکمیلی:</label>
-                      <input className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none dark:text-white text-xs font-bold" value={instDesc} onChange={e => setInstDesc(e.target.value)} placeholder="مثلاً: توافق تسویه در جلسه بعد..." />
-                    </div>
-
-                    <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md shadow-blue-600/20 mt-1 transition-all">
-                      {instCount === 1 ? 'ثبت وعده پرداخت موکول به بعد' : `تایید و ایجاد ${instCount} قسط`}
-                    </button>
-                </form>
-            </div>
-         </div>
-      )}
+      <AppointmentPaymentModal
+        isOpen={isSharedModalOpen}
+        onClose={() => {
+          setIsSharedModalOpen(false);
+          setSharedModalPatientId(null);
+          setSharedModalAppointment(null);
+        }}
+        initialMode={sharedModalMode}
+        patientId={sharedModalPatientId}
+        appointment={sharedModalAppointment}
+        patient={patients.find(p => p.uuid === sharedModalPatientId) || null}
+        onAddPayment={addPayment}
+        onAddInstallment={addInstallment}
+      />
     </div>
   );
 };
