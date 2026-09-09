@@ -51,22 +51,18 @@ export const Payments = () => {
 
   // Shared Payment Modal State
   const [isSharedModalOpen, setIsSharedModalOpen] = useState(false);
-  const [sharedModalMode, setSharedModalMode] = useState<'immediate' | 'installments'>('immediate');
+  const [sharedModalMode, setSharedModalMode] = useState<'immediate' | 'installments' | 'collect_installment'>('immediate');
   const [sharedModalPatientId, setSharedModalPatientId] = useState<string | null>(null);
   const [sharedModalAppointment, setSharedModalAppointment] = useState<any>(null);
+  const [sharedModalInstallment, setSharedModalInstallment] = useState<Installment | null>(null);
 
-  // Other Modals (Receipt viewing and quick installment collection)
+  // Other Modals (Receipt viewing)
   const [viewingPayment, setViewingPayment] = useState<Payment | null>(null);
-  const [collectingInstallment, setCollectingInstallment] = useState<Installment | null>(null);
-
-  // Quick Collect Installment Form State
-  const [collectMethod, setCollectMethod] = useState<'pos' | 'cash' | 'card_to_card'>('pos');
-  const [collectDiscount, setCollectDiscount] = useState('0');
-  const [collectNotes, setCollectNotes] = useState('');
 
   useEffect(() => {
     if (location.state && location.state.openPaymentModal) {
       setSharedModalMode('immediate');
+      setSharedModalInstallment(null);
       if (location.state.patientId) {
         setSharedModalPatientId(location.state.patientId);
       }
@@ -83,35 +79,11 @@ export const Payments = () => {
   }, [location, appointments]);
 
   const handleOpenCollectModal = (inst: Installment) => {
-    setCollectingInstallment(inst);
-    setCollectMethod('pos');
-    setCollectDiscount('0');
-    setCollectNotes('');
-  };
-
-  const handleConfirmCollectInstallment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!collectingInstallment) return;
-
-    const discountNum = parseFloat(collectDiscount) || 0;
-    const finalCollectAmount = Math.max(0, collectingInstallment.amount - discountNum);
-
-    const newPayment: Payment = {
-        uuid: `pay-inst-${Date.now()}`,
-        patient_id: collectingInstallment.patient_id,
-        doctor_id: collectingInstallment.doctor_id,
-        amount: finalCollectAmount,
-        discount: discountNum > 0 ? discountNum : undefined,
-        date: new Date().toISOString(),
-        payment_method: collectMethod,
-        installment_uuid: collectingInstallment.uuid,
-        description: collectNotes.trim() ? `وصول قسط / مطالبه: ${collectingInstallment.description} (${collectNotes.trim()})` : `وصول قسط / مطالبه: ${collectingInstallment.description}`
-    };
-
-    await addPayment(newPayment);
-    await updateInstallment(collectingInstallment.uuid, { status: 'paid' });
-    toast.success(`وصول مبلغ ${formatCurrency(finalCollectAmount)} با موفقیت در صندوق ثبت گردید.`);
-    setCollectingInstallment(null);
+    setSharedModalInstallment(inst);
+    setSharedModalPatientId(inst.patient_id);
+    setSharedModalAppointment(null);
+    setSharedModalMode('collect_installment');
+    setIsSharedModalOpen(true);
   };
 
   const getReasonText = (p: Payment) => {
@@ -605,10 +577,15 @@ export const Payments = () => {
                                       {i.status !== 'paid' ? (
                                         <button 
                                           onClick={() => handleOpenCollectModal(i)} 
-                                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-[11px] font-black transition-all shadow-xs flex items-center gap-1 mx-auto"
+                                          className={clsx(
+                                            "text-white px-3 py-1.5 rounded-xl text-[11px] font-black transition-all shadow-xs flex items-center gap-1 mx-auto",
+                                            isPromise 
+                                              ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20" 
+                                              : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
+                                          )}
                                         >
-                                          <CreditCard size={12} />
-                                          <span>وصول قسط</span>
+                                          {isPromise ? <Clock size={12} /> : <CreditCard size={12} />}
+                                          <span>{isPromise ? 'وصول وعده' : 'وصول قسط'}</span>
                                         </button>
                                       ) : (
                                         <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-1">
@@ -714,98 +691,7 @@ export const Payments = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: QUICK COLLECT INSTALLMENT */}
-      {/* ========================================================================= */}
-      {collectingInstallment && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in no-print !mt-0">
-          <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95">
-            <div className="bg-gradient-to-r from-primary-600 to-indigo-600 p-5 text-white relative">
-              <button onClick={() => setCollectingInstallment(null)} className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"><X size={16} /></button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm"><CreditCard size={20} /></div>
-                <div>
-                  <h3 className="text-lg font-black">وصول و تسویه قسط</h3>
-                  <p className="text-primary-100 text-xs font-bold">{getPatientName(collectingInstallment.patient_id)}</p>
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleConfirmCollectInstallment} className="p-5 space-y-3.5 text-xs text-right">
-              <div className="p-3 bg-primary-50 dark:bg-primary-950/40 rounded-xl border border-primary-200 dark:border-primary-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-gray-400 block font-bold">شرح تعهد:</span>
-                  <span className="font-bold text-gray-900 dark:text-white text-xs">{collectingInstallment.description}</span>
-                </div>
-                <div className="text-left font-mono">
-                  <span className="text-[10px] text-gray-400 block font-bold">مبلغ سررسید:</span>
-                  <span className="text-sm font-black text-primary-600 dark:text-primary-400">{formatCurrency(collectingInstallment.amount)}</span>
-                </div>
-              </div>
-
-              {/* Payment Method Selector */}
-              <div className="space-y-1">
-                <label className="font-black text-gray-700 dark:text-gray-200">درگاه دریافت وجه:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'pos', label: 'کارت‌خوان', icon: CreditCard },
-                    { id: 'cash', label: 'نقد', icon: DollarSign },
-                    { id: 'card_to_card', label: 'کارت به کارت', icon: Smartphone }
-                  ].map(m => {
-                    const Icon = m.icon;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setCollectMethod(m.id as any)}
-                        className={clsx(
-                          "py-2 px-2 rounded-xl border text-xs font-black transition-all flex items-center justify-center gap-1",
-                          collectMethod === m.id ? "bg-primary-600 border-primary-600 text-white shadow-xs" : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        )}
-                      >
-                        <Icon size={13} /> {m.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Discount */}
-              <div className="space-y-1">
-                <label className="font-black text-gray-700 dark:text-gray-200">تخفیف موردی (تومان):</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={collectDiscount}
-                  onChange={(e) => setCollectDiscount(e.target.value)}
-                  placeholder="۰"
-                  className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-mono dir-ltr text-left font-bold text-xs"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-black text-gray-700 dark:text-gray-200">یادداشت:</label>
-                <input
-                  type="text"
-                  value={collectNotes}
-                  onChange={(e) => setCollectNotes(e.target.value)}
-                  placeholder="توضیحات اختیاری..."
-                  className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-bold text-xs"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-black text-xs shadow-md shadow-primary-600/20 transition-all mt-1"
-              >
-                تایید نهایی وصول و ثبت در صندوق
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SHARED APPOINTMENT & DIRECT PAYMENT / INSTALLMENT MODAL */}
+      {/* SHARED APPOINTMENT, DIRECT PAYMENT & INSTALLMENT COLLECTION MODAL */}
       {/* ========================================================================= */}
       <AppointmentPaymentModal
         isOpen={isSharedModalOpen}
@@ -813,13 +699,16 @@ export const Payments = () => {
           setIsSharedModalOpen(false);
           setSharedModalPatientId(null);
           setSharedModalAppointment(null);
+          setSharedModalInstallment(null);
         }}
         initialMode={sharedModalMode}
         patientId={sharedModalPatientId}
         appointment={sharedModalAppointment}
         patient={patients.find(p => p.uuid === sharedModalPatientId) || null}
+        installment={sharedModalInstallment}
         onAddPayment={addPayment}
         onAddInstallment={addInstallment}
+        onUpdateInstallment={updateInstallment}
       />
     </div>
   );
