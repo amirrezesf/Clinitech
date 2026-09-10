@@ -341,6 +341,27 @@ export const MOCK_PAYMENTS: Payment[] = [
     reference_number: '66549812',
     installment_uuid: 'inst-p2-1',
     description: 'وصول قسط اول عصب‌کشی و ترمیم تخصصی'
+  },
+  {
+    uuid: 'pay-direct-p3',
+    patient_id: 'p3',
+    doctor_id: 1,
+    amount: 650000,
+    discount: 50000,
+    date: new Date(Date.now() - 10 * 86400000).toISOString(),
+    payment_method: 'pos' as const,
+    reference_number: '55431109',
+    description: 'پرداخت نقدی با دستگاه پوز بابت جرم‌گیری و بروساژ'
+  },
+  {
+    uuid: 'pay-direct-p1-extra',
+    patient_id: 'p1',
+    doctor_id: 1,
+    amount: 450000,
+    date: new Date(Date.now() - 2 * 86400000).toISOString(),
+    payment_method: 'cash' as const,
+    reference_number: 'REC-9941',
+    description: 'دریافت نقدی بابت ویزیت کنترل دوره‌ای ارتودنسی و تعویض کش'
   }
 ];
 
@@ -473,5 +494,109 @@ export const MOCK_INSTALLMENTS: Installment[] = [
     created_at: new Date().toISOString()
   }
 ];
-export const MOCK_EXPENSES: Expense[] = [];
+export const MOCK_EXPENSES: Expense[] = [
+  {
+    id: 'exp-1',
+    title: 'اجاره بهای ماهانه مطب و کلینیک',
+    amount: 45000000,
+    date: new Date(Date.now() - 2 * 86400000).toISOString(),
+    category: 'اجاره و رهن',
+    description: 'پرداخت اجاره بهای طبقه سوم ساختمان پزشکان مرکزی (شهریور)',
+    status: 'paid'
+  },
+  {
+    id: 'exp-2',
+    title: 'حقوق و دستمزد منشی و دستیار مطب',
+    amount: 22500000,
+    date: new Date(Date.now() - 4 * 86400000).toISOString(),
+    category: 'حقوق و دستمزد',
+    description: 'حقوق ماهانه خانم مهندس رحیمی و پرسنل پذیرش شیفت عصر',
+    doctor_id: 1,
+    status: 'paid'
+  },
+  {
+    id: 'exp-3',
+    title: 'خرید مواد مصرفی و ترمیمی دندانپزشکی',
+    amount: 14800000,
+    date: new Date(Date.now() - 6 * 86400000).toISOString(),
+    category: 'اقلام مصرفی پزشکی',
+    description: 'کامپوزیت ۳M، اسید اچ، باندینگ نسل ۸ و کارپول بی‌حسی لیدوکائین',
+    doctor_id: 1,
+    status: 'paid'
+  },
+  {
+    id: 'exp-4',
+    title: 'خرید پک‌های استریل، ماسک، سرسوزن و دستکش نیتریل',
+    amount: 5600000,
+    date: new Date(Date.now() - 8 * 86400000).toISOString(),
+    category: 'اقلام مصرفی پزشکی',
+    description: 'تامین اقلام بهداشتی و ایمنی مصرفی ماهانه کلینیک',
+    status: 'paid'
+  },
+  {
+    id: 'exp-5',
+    title: 'سرویس و کالیبراسیون دستگاه اتوکلاو و کمپرسور باد',
+    amount: 3800000,
+    date: new Date(Date.now() - 11 * 86400000).toISOString(),
+    category: 'تعمیرات و نگهداری',
+    description: 'تعویض فیلترهای هپا، سرویس پمپ خلاء و تست بیولوژیک اتوکلاو',
+    status: 'paid'
+  },
+  {
+    id: 'exp-6',
+    title: 'قبض برق صنعتی و گاز مصرفی کلینیک',
+    amount: 2450000,
+    date: new Date(Date.now() - 14 * 86400000).toISOString(),
+    category: 'قبوض (آب، برق، گاز)',
+    description: 'شناسه قبض: ۹۲۸۳۷۴۱۰۲ - پرداخت آنلاین دوره تابستان',
+    status: 'paid'
+  },
+  {
+    id: 'exp-7',
+    title: 'شارژ سامانه پیامک نوبت‌دهی و اینترنت فیبرنوری',
+    amount: 1850000,
+    date: new Date(Date.now() - 17 * 86400000).toISOString(),
+    category: 'قبوض (آب، برق، گاز)',
+    description: 'خرید ۵۰,۰۰۰ پیامک اطلاع‌رسانی یادآوری نوبت و اشتراک اینترنت ۳ ماهه',
+    status: 'paid'
+  },
+  {
+    id: 'exp-8',
+    title: 'مواد مزوتراپی و ژل‌های هیالورونیک اسید',
+    amount: 19500000,
+    date: new Date(Date.now() - 20 * 86400000).toISOString(),
+    category: 'اقلام مصرفی پزشکی',
+    description: 'خرید برندهای معتبر فیلر و مزو دارای تاییدیه وزارت بهداشت',
+    doctor_id: 3,
+    status: 'paid'
+  },
+  {
+    id: 'exp-9',
+    title: 'دستگاه مانیتورینگ علائم حیاتی پرتابل',
+    amount: 16000000,
+    date: new Date(Date.now() + 4 * 86400000).toISOString(),
+    category: 'تجهیزات سرمایه‌ای',
+    description: 'پیش‌فاکتور خرید دستگاه سنجش اکسیژن و فشارسنج بیمارستانی (در انتظار تایید و واریز)',
+    doctor_id: 2,
+    status: 'pending'
+  },
+  {
+    id: 'exp-10',
+    title: 'چاپ بروشورهای سلامت دهان و دندان و اصلاح تابلوی ورودی',
+    amount: 3200000,
+    date: new Date(Date.now() + 7 * 86400000).toISOString(),
+    category: 'تبلیغات و مارکتینگ',
+    description: 'طراحی و چاپ ۲,۰۰۰ برگه آموزشی مراقبت پس از درمان برای مراجعین',
+    status: 'pending'
+  },
+  {
+    id: 'exp-11',
+    title: 'اقلام پذیرایی و ملزومات رفاهی سالن انتظار',
+    amount: 1350000,
+    date: new Date(Date.now() - 1 * 86400000).toISOString(),
+    category: 'سایر موارد',
+    description: 'خرید چای، قهوه، دستمال کاغذی، شوینده و خوشبوکننده هوا',
+    status: 'paid'
+  }
+];
 export const MOCK_AUDIT_LOGS: AuditLog[] = [];

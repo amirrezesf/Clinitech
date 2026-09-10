@@ -86,7 +86,19 @@ export const DataProvider = ({ children }: { children?: ReactNode }) => {
             setPayments(MOCK_PAYMENTS);
             setInstallments(MOCK_INSTALLMENTS);
             setInsurances(MOCK_INSURANCES);
-            setExpenses(MOCK_EXPENSES);
+            
+            // Handle Expenses with Persistence & Defaults
+            let storedExpenses: Expense[] = [];
+            try {
+              storedExpenses = JSON.parse(localStorage.getItem('clinic_expenses') || '[]');
+            } catch {
+              storedExpenses = [];
+            }
+            if (!storedExpenses || storedExpenses.length === 0) {
+              storedExpenses = MOCK_EXPENSES;
+              localStorage.setItem('clinic_expenses', JSON.stringify(MOCK_EXPENSES));
+            }
+            setExpenses(storedExpenses);
             setMedicalImages(JSON.parse(localStorage.getItem('medical_images') || '[]'));
             
             // Handle Templates with Defaults
@@ -204,15 +216,27 @@ export const DataProvider = ({ children }: { children?: ReactNode }) => {
   };
 
   const addExpense = async (expense: Expense) => {
-    setExpenses(prev => [expense, ...prev]);
+    setExpenses(prev => {
+      const next = [expense, ...prev];
+      localStorage.setItem('clinic_expenses', JSON.stringify(next));
+      return next;
+    });
   };
 
   const updateExpense = async (id: string, updates: Partial<Expense>) => {
-    setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+    setExpenses(prev => {
+      const next = prev.map(e => e.id === id ? { ...e, ...updates } : e);
+      localStorage.setItem('clinic_expenses', JSON.stringify(next));
+      return next;
+    });
   };
 
   const deleteExpense = async (id: string) => {
-    setExpenses(prev => prev.filter(e => e.id !== id));
+    setExpenses(prev => {
+      const next = prev.filter(e => e.id !== id);
+      localStorage.setItem('clinic_expenses', JSON.stringify(next));
+      return next;
+    });
   };
 
   const addMedicalImage = async (img: MedicalImage) => {

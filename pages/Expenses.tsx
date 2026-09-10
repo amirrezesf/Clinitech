@@ -24,12 +24,24 @@ const EXPENSE_CATEGORIES = [
   'سایر موارد'
 ];
 
+const QUICK_EXPENSE_TEMPLATES = [
+  { title: 'خرید دستکش نیتریل، ماسک و گاز استریل', category: 'اقلام مصرفی پزشکی', defaultAmount: '3500000' },
+  { title: 'مواد ترمیمی، کامپوزیت و بی‌حسی دندانپزشکی', category: 'اقلام مصرفی پزشکی', defaultAmount: '12500000' },
+  { title: 'شارژ سامانه پیامک نوبت‌دهی و اینترنت', category: 'قبوض (آب، برق، گاز)', defaultAmount: '1800000' },
+  { title: 'سرویس دوره‌ای اتوکلاو و کمپرسور', category: 'تعمیرات و نگهداری', defaultAmount: '3200000' },
+  { title: 'حقوق و دستمزد منشی و پرسنل پذیرش', category: 'حقوق و دستمزد', defaultAmount: '20000000' },
+  { title: 'قبوض آب، برق صنعتی و گاز مطب', category: 'قبوض (آب، برق، گاز)', defaultAmount: '2400000' },
+  { title: 'ژل‌ها و محلول‌های مزوتراپی و فیلر', category: 'اقلام مصرفی پزشکی', defaultAmount: '16000000' },
+  { title: 'اقلام پذیرایی و رفاهی مراجعین', category: 'سایر موارد', defaultAmount: '1400000' }
+];
+
 export const Expenses = () => {
   const { expenses, addExpense, updateExpense, deleteExpense, doctors } = useData();
   const { user } = useAuth();
 
   const [search, setSearch] = useState('');
   const [filterDoctorId, setFilterDoctorId] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,13 +64,25 @@ export const Expenses = () => {
             if (e.doctor_id && e.doctor_id !== parseInt(filterDoctorId)) return false;
             if (!e.doctor_id) return false; 
         }
+        if (filterCategory !== 'all') {
+            if (e.category !== filterCategory) return false;
+        }
         if (filterStatus !== 'all') {
             if (e.status !== filterStatus) return false;
         }
-        const matchesSearch = e.title.includes(search) || e.category.includes(search);
+        const matchesSearch = e.title.includes(search) || e.category.includes(search) || (e.description && e.description.includes(search));
         return matchesSearch;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses, search, filterDoctorId, filterStatus]);
+  }, [expenses, search, filterDoctorId, filterCategory, filterStatus]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    const totalAmount = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const paidAmount = filteredExpenses.filter(e => e.status === 'paid').reduce((sum, e) => sum + (e.amount || 0), 0);
+    const pendingAmount = filteredExpenses.filter(e => e.status === 'pending').reduce((sum, e) => sum + (e.amount || 0), 0);
+    const totalCount = filteredExpenses.length;
+    return { totalAmount, paidAmount, pendingAmount, totalCount };
+  }, [filteredExpenses]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredExpenses.length) setSelectedIds([]);
@@ -134,6 +158,20 @@ export const Expenses = () => {
     setIsModalOpen(false);
   };
 
+  const handleToggleStatus = async (expense: Expense) => {
+    const newStatus = expense.status === 'paid' ? 'pending' : 'paid';
+    await updateExpense(expense.id, { status: newStatus });
+    toast.success(newStatus === 'paid' ? 'وضعیت به «پرداخت شده» تغییر یافت.' : 'وضعیت به «در انتظار پرداخت» تغییر یافت.');
+  };
+
+  const applyTemplate = (template: typeof QUICK_EXPENSE_TEMPLATES[0]) => {
+    setTitle(template.title);
+    setCategory(template.category);
+    if (!amount) {
+      setAmount(template.defaultAmount);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-24">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -147,21 +185,73 @@ export const Expenses = () => {
         </button>
       </div>
 
-      <div className="glass-card p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
+      {/* SUMMARY STATS BAR */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="glass-card p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 flex items-center justify-center shrink-0">
+            <Receipt size={22} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-gray-400">مجموع کل هزینه‌ها</p>
+            <p className="text-base font-black text-gray-900 dark:text-white truncate">{formatCurrency(stats.totalAmount)}</p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={22} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-gray-400">پرداخت شده</p>
+            <p className="text-base font-black text-green-600 dark:text-green-400 truncate">{formatCurrency(stats.paidAmount)}</p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center shrink-0">
+            <Clock size={22} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-gray-400">در انتظار پرداخت</p>
+            <p className="text-base font-black text-amber-600 dark:text-amber-400 truncate">{formatCurrency(stats.pendingAmount)}</p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+            <FileText size={22} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-gray-400">تعداد فاکتورها</p>
+            <p className="text-base font-black text-gray-900 dark:text-white">{stats.totalCount} مورد</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-4 rounded-xl flex flex-col md:flex-row gap-3 items-center">
          {allowedDoctors.length > 1 && (
-            <div className="relative w-full md:w-56">
+            <div className="relative w-full md:w-48">
                 <Stethoscope className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <select className="w-full pr-10 pl-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none appearance-none font-medium dark:text-white" value={filterDoctorId} onChange={(e) => setFilterDoctorId(e.target.value)}>
+                <select className="w-full pr-10 pl-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none appearance-none font-medium dark:text-white text-xs" value={filterDoctorId} onChange={(e) => setFilterDoctorId(e.target.value)}>
                     <option value="all">همه پزشکان</option>
                     {allowedDoctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
                 <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
             </div>
          )}
+
+         <div className="relative w-full md:w-52">
+            <Tag className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <select className="w-full pr-9 pl-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none appearance-none font-medium dark:text-white text-xs" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                <option value="all">همه دسته‌بندی‌ها</option>
+                {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+         </div>
          
-         <div className="relative w-full md:w-48">
-            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <select className="w-full pr-10 pl-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none appearance-none font-medium dark:text-white" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+         <div className="relative w-full md:w-44">
+            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <select className="w-full pr-9 pl-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none appearance-none font-medium dark:text-white text-xs" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="all">همه وضعیت‌ها</option>
                 <option value="paid">پرداخت شده</option>
                 <option value="pending">در انتظار پرداخت</option>
@@ -169,9 +259,9 @@ export const Expenses = () => {
             <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
          </div>
 
-         <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input type="text" placeholder="جستجوی در فاکتورها و دسته‌بندی‌ها..." className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white" value={search} onChange={(e) => setSearch(e.target.value)} />
+         <div className="relative flex-1 w-full">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input type="text" placeholder="جستجو در فاکتورها، شرح و دسته‌بندی..." className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white text-xs" value={search} onChange={(e) => setSearch(e.target.value)} />
          </div>
       </div>
 
@@ -218,15 +308,19 @@ export const Expenses = () => {
                       </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                      <span className={clsx(
-                          "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border",
+                      <button 
+                        type="button"
+                        onClick={() => handleToggleStatus(expense)}
+                        title="کلیک برای تغییر وضعیت پرداخت"
+                        className={clsx(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer",
                           expense.status === 'paid' 
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800" 
-                            : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 hover:bg-green-200" 
+                            : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-200"
                       )}>
-                          {expense.status === 'paid' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                          {expense.status === 'paid' ? 'پرداخت شده' : 'در انتظار'}
-                      </span>
+                          {expense.status === 'paid' ? <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" /> : <Clock size={12} className="text-amber-600 dark:text-amber-400" />}
+                          <span>{expense.status === 'paid' ? 'پرداخت شده' : 'در انتظار پرداخت'}</span>
+                      </button>
                   </td>
                   <td className="px-6 py-4 text-gray-500 dir-ltr text-right">{formatJalaliDate(expense.date)}</td>
                   <td className="px-6 py-4 text-center">
@@ -279,6 +373,28 @@ export const Expenses = () => {
 
                   <form onSubmit={handleSubmit} className="p-8 space-y-6">
                       <div className="space-y-4">
+                          {/* Quick Preset Templates */}
+                          {!editingId && (
+                            <div className="space-y-2 p-3 bg-red-50/50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/30">
+                              <p className="text-[11px] font-black text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                                <Tag size={12} />
+                                <span>پیش‌فرض‌های پرتکرار کلینیک (انتخاب سریع):</span>
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {QUICK_EXPENSE_TEMPLATES.map((tmpl, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => applyTemplate(tmpl)}
+                                    className="px-2.5 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:border-red-400 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition-all"
+                                  >
+                                    {tmpl.title}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="space-y-1">
                               <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                   <FileText size={14} /> عنوان هزینه / شرح کوتاه *
