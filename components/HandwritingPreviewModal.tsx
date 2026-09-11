@@ -25,45 +25,60 @@ export const HandwritingPreviewModal = ({ isOpen, onClose, imageData, title }: P
   };
 
   return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 md:p-8 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[3rem] w-full max-w-5xl h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-2 sm:p-4 md:p-8 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-[2.5rem] w-full max-w-5xl h-[94dvh] sm:h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
         
         {/* Header */}
-        <div className="px-10 py-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary-600 text-white rounded-2xl flex items-center justify-center shadow-xl">
-                <ZoomIn size={24} />
+        <div className="px-4 sm:px-10 py-3 sm:py-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shrink-0">
+                <ZoomIn className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-gray-800 dark:text-white">بازبینی دست‌خط: {title}</h3>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-0.5">Static Full-Page View Mode</p>
+              <h3 className="text-sm sm:text-xl font-black text-gray-800 dark:text-white truncate max-w-[180px] sm:max-w-none">
+                بازبینی دست‌خط: {title}
+              </h3>
+              <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-wider sm:tracking-[0.2em] mt-0.5">
+                Full-Page View Mode
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-              <button onClick={handlePrint} className="p-3 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-2xl transition-all" title="چاپ تصویر">
-                <Printer size={24} />
+          <div className="flex items-center gap-1.5 sm:gap-3">
+              <button 
+                type="button"
+                onClick={handlePrint} 
+                className="p-2 sm:p-3 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl sm:rounded-2xl transition-all" 
+                title="چاپ تصویر"
+                aria-label="چاپ تصویر"
+              >
+                <Printer size={20} className="sm:w-6 sm:h-6" />
               </button>
-              <button onClick={onClose} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all">
-                <X size={28} />
+              <button 
+                type="button"
+                onClick={onClose} 
+                className="p-2 sm:p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl sm:rounded-2xl transition-all"
+                aria-label="بستن پنجره"
+              >
+                <X size={22} className="sm:w-7 sm:h-7" />
               </button>
           </div>
         </div>
 
-        {/* Content - Fixed Container with calculated constraints */}
-        <div className="flex-1 bg-slate-100 dark:bg-gray-950 p-6 md:p-10 flex items-center justify-center overflow-hidden">
-            <div className="w-full h-full flex items-center justify-center rounded-[2.5rem] bg-white dark:bg-gray-900 shadow-2xl p-4 overflow-hidden relative border border-gray-100 dark:border-gray-800">
+        {/* Content */}
+        <div className="flex-1 bg-slate-100 dark:bg-gray-950 p-2 sm:p-6 md:p-10 flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center rounded-xl sm:rounded-[2rem] bg-white dark:bg-gray-900 shadow-xl p-2 sm:p-4 overflow-hidden relative border border-gray-100 dark:border-gray-800">
                 <img 
                     src={imageData} 
                     alt={title} 
-                    className="w-full h-full max-h-[calc(100vh-280px)] object-contain rounded-xl select-none"
+                    className="w-full h-full max-h-[calc(100dvh-180px)] sm:max-h-[calc(100vh-280px)] object-contain rounded-lg select-none"
                     onContextMenu={(e) => e.preventDefault()}
                 />
             </div>
         </div>
 
         {/* Footer */}
-        <div className="px-10 py-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 text-center shrink-0">
-            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Digital Healthcare Archiving System</p>
+        <div className="px-4 sm:px-10 py-3 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 text-center shrink-0">
+            <p className="text-[9px] sm:text-[11px] font-black text-gray-400 uppercase tracking-wider sm:tracking-widest">Digital Healthcare Archiving System</p>
         </div>
       </div>
     </div>

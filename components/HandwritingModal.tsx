@@ -316,57 +316,68 @@ export const HandwritingModal = ({ isOpen, onClose, onComplete, title, initialIm
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[3rem] w-full max-w-7xl h-[94vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-1.5 sm:p-4 md:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-[2.5rem] w-full max-w-7xl h-[96dvh] sm:h-[94vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
         
-        <div className="px-10 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-primary-600 text-white rounded-xl shadow-xl flex items-center justify-center">
-                <PenTool size={20} />
+        {/* Header */}
+        <div className="px-4 sm:px-8 py-3 sm:py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-600 text-white rounded-xl shadow-md flex items-center justify-center shrink-0">
+                <PenTool className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-gray-800 dark:text-white">{title}</h3>
-              <p className="text-[9px] text-primary-600 font-black uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
-                <Zap size={8} fill="currentColor" /> Vector Ink Engine v3
+              <h3 className="text-sm sm:text-xl font-black text-gray-800 dark:text-white truncate max-w-[200px] sm:max-w-none">{title}</h3>
+              <p className="text-[8px] sm:text-[9px] text-primary-600 font-black uppercase tracking-wider sm:tracking-[0.2em] mt-0.5 flex items-center gap-1">
+                <Zap size={8} fill="currentColor" /> Vector Ink Engine
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 rounded-xl transition-all">
-            <X size={24} />
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
+            aria-label="بستن پنجره"
+          >
+            <X size={22} />
           </button>
         </div>
 
-        <div className="px-8 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-6 items-center shrink-0">
-           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl">
+        {/* Toolbar - Horizontally scrollable on mobile */}
+        <div className="px-3 sm:px-8 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5 sm:gap-6 shrink-0 overflow-x-auto custom-scrollbar">
+           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0">
                <button 
+                  type="button"
                   onClick={() => setTool('pen')} 
-                  className={clsx("px-5 py-2 rounded-xl transition-all flex items-center gap-2 text-[11px] font-black", tool === 'pen' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700")}
+                  className={clsx("px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black", tool === 'pen' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700")}
                >
-                 <PenTool size={16} /><span>قلم</span>
+                 <PenTool size={14} /><span>قلم</span>
                </button>
                
                <div className="relative group">
                  <button 
+                    type="button"
                     onClick={() => setTool('eraser')} 
-                    className={clsx("px-5 py-2 rounded-xl transition-all flex items-center gap-2 text-[11px] font-black relative", tool === 'eraser' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700")}
+                    className={clsx("px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black relative", tool === 'eraser' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700")}
                  >
-                    <Eraser size={16} />
+                    <Eraser size={14} />
                     <span>پاک‌کن</span>
-                    <ChevronDown size={10} className="mr-1 opacity-50" />
+                    <ChevronDown size={10} className="mr-0.5 opacity-50" />
                  </button>
                  
-                 <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                 <div className="absolute top-full right-0 mt-2 w-44 sm:w-48 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
                     <button 
+                        type="button"
                         onClick={() => { setEraseMode('pixel'); setTool('eraser'); }}
-                        className={clsx("w-full px-4 py-3 text-right text-[10px] font-black flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 transition-colors", eraseMode === 'pixel' ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600" : "text-gray-500 hover:bg-gray-50")}
+                        className={clsx("w-full px-3.5 py-2.5 text-right text-[10px] font-black flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 transition-colors", eraseMode === 'pixel' ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600" : "text-gray-500 hover:bg-gray-50")}
                     >
-                        <CircleDot size={14} /> <span>نقطه‌ای (Pixel)</span>
+                        <CircleDot size={13} /> <span>نقطه‌ای (Pixel)</span>
                     </button>
                     <button 
+                        type="button"
                         onClick={() => { setEraseMode('objective'); setTool('eraser'); }}
-                        className={clsx("w-full px-4 py-3 text-right text-[10px] font-black flex items-center gap-2 transition-colors", eraseMode === 'objective' ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600" : "text-gray-500 hover:bg-gray-50")}
+                        className={clsx("w-full px-3.5 py-2.5 text-right text-[10px] font-black flex items-center gap-2 transition-colors", eraseMode === 'objective' ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600" : "text-gray-500 hover:bg-gray-50")}
                     >
-                        <MousePointer2 size={14} /> <span>شیءگرا (کل خط)</span>
+                        <MousePointer2 size={13} /> <span>شیءگرا (کل خط)</span>
                     </button>
                  </div>
                </div>
@@ -374,51 +385,58 @@ export const HandwritingModal = ({ isOpen, onClose, onComplete, title, initialIm
 
            {tool === 'pen' && (
              <>
-                <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <div className="flex items-center gap-2">
+                <div className="h-6 sm:h-8 w-px bg-gray-200 dark:bg-gray-700 shrink-0"></div>
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     {PRESET_COLORS.map(color => (
                         <button 
+                            type="button"
                             key={color.id} 
                             onClick={() => setSelectedColor(color.value)} 
                             className={clsx(
-                                "w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110", 
-                                selectedColor === color.value ? "border-primary-500 ring-4 ring-primary-500/20" : "border-white dark:border-gray-700"
+                                "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition-all transform hover:scale-110", 
+                                selectedColor === color.value ? "border-primary-500 ring-2 sm:ring-4 ring-primary-500/20" : "border-white dark:border-gray-700"
                             )} 
                             style={{ backgroundColor: color.value }}
+                            title={color.label}
                         />
                     ))}
                 </div>
              </>
            )}
 
-           <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+           <div className="h-6 sm:h-8 w-px bg-gray-200 dark:bg-gray-700 shrink-0"></div>
 
-           <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0">
             {BRUSH_SIZES.map(size => (
                 <button 
+                  type="button"
                   key={size.id} 
                   onClick={() => { setBrushSize(size.value); setTool('pen'); }} 
-                  className={clsx("px-3 py-1.5 rounded-lg text-[9px] font-black transition-all", brushSize === size.value && tool === 'pen' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-xs" : "text-gray-400 hover:text-gray-600")}
+                  className={clsx("px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] font-black transition-all", brushSize === size.value && tool === 'pen' ? "bg-white dark:bg-gray-700 text-primary-600 shadow-xs" : "text-gray-400 hover:text-gray-600")}
                 >
                   {size.label}
                 </button>
             ))}
            </div>
 
-           <div className="flex-1"></div>
+           <div className="flex-1 min-w-[8px]"></div>
            
-           <button onClick={clearCanvas} className="flex items-center gap-2 px-4 py-2 text-red-400 hover:text-red-500 rounded-xl text-[10px] font-black transition-all group">
-             <Trash2 size={16} className="group-hover:rotate-6 transition-transform" />
-             <span>پاک‌سازی کامل</span>
+           <button 
+             type="button"
+             onClick={clearCanvas} 
+             className="flex items-center gap-1.5 px-3 py-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-[10px] font-bold transition-all shrink-0"
+           >
+             <Trash2 size={14} />
+             <span>پاک‌سازی</span>
            </button>
         </div>
 
         <div 
           ref={scrollAreaRef}
-          className="flex-1 relative bg-slate-200 dark:bg-gray-950 p-6 touch-none overflow-y-auto custom-scrollbar"
+          className="flex-1 relative bg-slate-200 dark:bg-gray-950 p-2 sm:p-6 touch-none overflow-y-auto custom-scrollbar"
         >
           <div 
-            className="mx-auto rounded-[2.5rem] shadow-2xl relative bg-white border border-gray-200 dark:border-gray-800 overflow-hidden"
+            className="mx-auto rounded-2xl sm:rounded-[2.5rem] shadow-2xl relative bg-white border border-gray-200 dark:border-gray-800 overflow-hidden"
             style={{ width: '100%', maxWidth: '900px', height: `${canvasHeight}px` }}
             onMouseEnter={() => setIsOverCanvas(true)}
             onMouseLeave={() => { setIsOverCanvas(false); stopDrawing(); }}
@@ -457,24 +475,35 @@ export const HandwritingModal = ({ isOpen, onClose, onComplete, title, initialIm
             )}
           </div>
 
-          <div className="flex justify-center mt-8 pb-12">
+          <div className="flex justify-center mt-6 sm:mt-8 pb-10">
                 <button 
+                  type="button"
                   onClick={addNewPage}
-                  className="px-8 py-4 bg-primary-600 text-white shadow-2xl rounded-2xl flex items-center gap-3 text-sm font-black hover:bg-primary-700 transition-all transform active:scale-95 group"
+                  className="px-5 sm:px-8 py-3 sm:py-4 bg-primary-600 text-white shadow-xl rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-black hover:bg-primary-700 transition-all transform active:scale-95 group"
                 >
-                    <FilePlus size={20} className="group-hover:rotate-12 transition-transform" />
+                    <FilePlus size={18} className="group-hover:rotate-12 transition-transform" />
                     <span>افزودن فضای جدید در پایین</span>
-                    <ChevronDown size={18} className="animate-bounce" />
+                    <ChevronDown size={16} className="animate-bounce" />
                 </button>
           </div>
         </div>
 
-        <div className="px-10 py-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex gap-6 shrink-0">
-            <button onClick={handleFinish} className="flex-1 py-4 bg-primary-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-4 hover:bg-primary-700 shadow-2xl shadow-primary-600/20 transition-all transform active:scale-[0.98]">
-                <CheckCircle size={26} />
-                <span>اتمام و ثبت نهایی</span>
+        <div className="px-4 sm:px-10 py-3 sm:py-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/40 flex gap-2.5 sm:gap-6 shrink-0">
+            <button 
+              type="button"
+              onClick={handleFinish} 
+              className="flex-1 py-3 sm:py-4 bg-primary-600 text-white rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg flex items-center justify-center gap-2 sm:gap-4 hover:bg-primary-700 shadow-xl shadow-primary-600/20 transition-all transform active:scale-[0.98]"
+            >
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>اتمام و ثبت دست‌خط</span>
             </button>
-            <button onClick={onClose} className="px-12 py-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold hover:bg-gray-100 transition-all">انصراف</button>
+            <button 
+              type="button"
+              onClick={onClose} 
+              className="px-5 sm:px-12 py-3 sm:py-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base hover:bg-gray-100 transition-all active:scale-95"
+            >
+              انصراف
+            </button>
         </div>
       </div>
     </div>
