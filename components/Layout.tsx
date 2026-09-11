@@ -64,7 +64,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300 w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300 w-full max-w-full">
       <Sidebar 
         isOpen={sidebarOpen} 
         toggle={() => setSidebarOpen(!sidebarOpen)} 
@@ -73,11 +73,11 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       />
       
       <main className={clsx(
-        "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out w-full max-w-full min-w-0 overflow-x-hidden",
+        "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out w-full max-w-full min-w-0",
         isCollapsed ? "md:mr-20" : "md:mr-64"
       )}>
-        {/* Header */}
-        <header className="h-16 sm:h-20 glass sticky top-0 z-30 px-3 sm:px-6 flex items-center justify-between shadow-sm w-full max-w-full min-w-0">
+        {/* Sticky Header */}
+        <header className="h-16 sm:h-20 bg-white/85 dark:bg-gray-800/85 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 flex items-center justify-between shadow-xs border-b border-gray-200/60 dark:border-gray-700/60 w-full max-w-full min-w-0">
            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
              <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 sm:p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0">
                <Menu size={22} />
