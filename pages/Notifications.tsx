@@ -269,36 +269,36 @@ export const Notifications: React.FC = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-2xl">
-            <Bell className="w-7 h-7" />
+          <div className="p-2.5 sm:p-3 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-2xl shrink-0">
+            <Bell className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-              مرکز اعلان‌ها و پیام‌های سیستم
+            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white flex flex-wrap items-center gap-2">
+              <span>مرکز اعلان‌ها و پیام‌های سیستم</span>
               {unreadCount > 0 && (
-                <span className="px-2.5 py-0.5 text-xs bg-red-500 text-white font-bold rounded-full">
+                <span className="px-2.5 py-0.5 text-[11px] bg-red-500 text-white font-bold rounded-full">
                   {new Intl.NumberFormat('fa-IR').format(unreadCount)} خوانده‌نشده
                 </span>
               )}
             </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               مشاهده کامل پیام‌ها، هشدار نوبت‌ها، اقساط معوقه و فعالیت‌های جدید مطب
             </p>
           </div>
         </div>
 
         {/* Global actions */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {unreadCount > 0 && (
             <button
               type="button"
               onClick={handleMarkAllAsRead}
-              className="px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 rounded-xl transition-colors flex items-center gap-1.5"
+              className="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 rounded-xl transition-colors flex items-center gap-1.5"
             >
               <CheckCheck className="w-4 h-4" />
-              <span>علامت همه به عنوان خوانده شده</span>
+              <span>خواندن همه</span>
             </button>
           )}
 
@@ -306,7 +306,7 @@ export const Notifications: React.FC = () => {
             <button
               type="button"
               onClick={handleClearAll}
-              className="px-3.5 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-950/40 dark:hover:bg-red-900/60 rounded-xl transition-colors flex items-center gap-1.5"
+              className="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-950/40 dark:hover:bg-red-900/60 rounded-xl transition-colors flex items-center gap-1.5"
             >
               <Trash2 className="w-4 h-4" />
               <span>پاکسازی همه</span>
@@ -316,14 +316,14 @@ export const Notifications: React.FC = () => {
       </div>
 
       {/* Filter Bar & Search */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+      <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-3 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
         {/* Categories */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 md:pb-0 custom-scrollbar w-full md:w-auto">
           <button
             type="button"
             onClick={() => setActiveCategory('all')}
             className={clsx(
-              'px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
+              'px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
               activeCategory === 'all'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -336,7 +336,7 @@ export const Notifications: React.FC = () => {
             type="button"
             onClick={() => setActiveCategory('unread')}
             className={clsx(
-              'px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
+              'px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
               activeCategory === 'unread'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -349,7 +349,7 @@ export const Notifications: React.FC = () => {
             type="button"
             onClick={() => setActiveCategory('appointment')}
             className={clsx(
-              'px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
+              'px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
               activeCategory === 'appointment'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -362,7 +362,7 @@ export const Notifications: React.FC = () => {
             type="button"
             onClick={() => setActiveCategory('financial')}
             className={clsx(
-              'px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
+              'px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
               activeCategory === 'financial'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -375,7 +375,7 @@ export const Notifications: React.FC = () => {
             type="button"
             onClick={() => setActiveCategory('system')}
             className={clsx(
-              'px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
+              'px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all',
               activeCategory === 'system'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -386,7 +386,7 @@ export const Notifications: React.FC = () => {
         </div>
 
         {/* Search input */}
-        <div className="relative min-w-[240px]">
+        <div className="relative w-full md:w-64 md:min-w-[220px]">
           <Search className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -401,8 +401,8 @@ export const Notifications: React.FC = () => {
       {/* Notifications List */}
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 p-12 rounded-2xl border border-gray-100 dark:border-gray-700 text-center space-y-3">
-            <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto stroke-[1.5]" />
+          <div className="bg-white dark:bg-gray-800 p-8 sm:p-12 rounded-2xl border border-gray-100 dark:border-gray-700 text-center space-y-3">
+            <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 dark:text-gray-600 mx-auto stroke-[1.5]" />
             <h3 className="text-base font-bold text-gray-700 dark:text-gray-300">هیچ اعلانی یافت نشد</h3>
             <p className="text-xs text-gray-400 max-w-sm mx-auto">
               با تغییر فیلترها یا عبارت جستجو می‌توانید اعلان‌های دیگری را مشاهده نمایید.
@@ -414,20 +414,20 @@ export const Notifications: React.FC = () => {
               key={item.id}
               onClick={() => handleNavigate(item)}
               className={clsx(
-                'p-5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-md',
+                'p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 group hover:shadow-md',
                 !item.isRead
                   ? 'bg-white dark:bg-gray-800 border-emerald-500/40 dark:border-emerald-500/40 ring-1 ring-emerald-500/10'
                   : 'bg-gray-50/60 dark:bg-gray-800/40 border-gray-200/80 dark:border-gray-700/80 opacity-90'
               )}
             >
-              <div className="flex items-start gap-4 flex-1">
+              <div className="flex items-start gap-3 sm:gap-4 flex-1">
                 {/* Icon Container */}
-                <div className="p-3 bg-gray-100 dark:bg-gray-700/60 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <div className="p-2.5 sm:p-3 bg-gray-100 dark:bg-gray-700/60 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
                   {getIcon(item.type)}
                 </div>
 
                 {/* Content */}
-                <div className="space-y-1.5 flex-1">
+                <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={clsx('px-2.5 py-0.5 text-[11px] font-bold rounded-lg', getBadgeStyle(item.type))}>
                       {getTypeLabel(item.type)}
@@ -435,7 +435,7 @@ export const Notifications: React.FC = () => {
                     {!item.isRead && (
                       <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                     )}
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                       {item.title}
                     </h3>
                   </div>
@@ -444,7 +444,7 @@ export const Notifications: React.FC = () => {
                     {item.message}
                   </p>
 
-                  <div className="flex items-center gap-4 text-[11px] text-gray-400 pt-1">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px] text-gray-400 pt-1">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
                       {item.timestamp}
@@ -459,24 +459,26 @@ export const Notifications: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={(e) => handleToggleRead(item.id, e)}
-                  className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl transition-colors"
-                  title={item.isRead ? 'علامت به عنوان خوانده‌نشده' : 'علامت به عنوان خوانده‌شده'}
-                >
-                  {item.isRead ? <Check className="w-4 h-4 text-emerald-500" /> : <CheckCheck className="w-4 h-4" />}
-                </button>
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2.5 md:pt-0 border-t md:border-t-0 border-gray-100 dark:border-gray-700 w-full md:w-auto">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => handleToggleRead(item.id, e)}
+                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl transition-colors"
+                    title={item.isRead ? 'علامت به عنوان خوانده‌نشده' : 'علامت به عنوان خوانده‌شده'}
+                  >
+                    {item.isRead ? <Check className="w-4 h-4 text-emerald-500" /> : <CheckCheck className="w-4 h-4" />}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={(e) => handleDismiss(item.id, e)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors"
-                  title="حذف این اعلان"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDismiss(item.id, e)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors"
+                    title="حذف این اعلان"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
 
                 {item.link && (
                   <button

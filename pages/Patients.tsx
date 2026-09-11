@@ -181,59 +181,199 @@ export const Patients = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div><h2 className="text-2xl font-bold text-gray-800 dark:text-white">مدیریت بیماران</h2><p className="text-gray-500 mt-1">لیست پرونده‌های بیماران و ویرایش اطلاعات</p></div>
-        <button onClick={handleAddNewClick} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all font-bold"><Plus size={20} /><span>بیمار جدید</span></button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div><h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">مدیریت بیماران</h2><p className="text-xs sm:text-sm text-gray-500 mt-1">لیست پرونده‌های بیماران و ویرایش اطلاعات</p></div>
+        <button onClick={handleAddNewClick} className="w-full sm:w-auto justify-center bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all font-bold text-sm"><Plus size={20} /><span>بیمار جدید</span></button>
       </div>
 
-       <div className="glass-card p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative w-full md:w-96">
+       <div className="glass-card p-3 sm:p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative w-full sm:w-96">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input type="text" placeholder="جستجو (نام، شماره تماس)..." className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input type="text" placeholder="جستجو (نام، شماره تماس)..." className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
        </div>
 
-      <div className="glass-card rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm min-h-[400px]">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm">
-            <thead className="bg-gray-50/80 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+      {/* Table Container Card */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200/80 dark:border-gray-700/60 shadow-xs">
+        {/* Table Top Bar */}
+        <div className="px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50 dark:bg-gray-800/30">
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-primary-600 dark:text-primary-400" />
+            <span className="text-xs font-black text-gray-800 dark:text-gray-200">فهرست بیماران و پرونده‌ها</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300">
+              {filteredPatients.length} پرونده
+            </span>
+          </div>
+          <div className="text-[11px] font-bold text-gray-400 sm:hidden flex items-center gap-1">
+            <span>← برای مشاهده همه ستون‌ها اسکرول کنید</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="w-full min-w-[760px] text-right text-xs">
+            <thead className="bg-gray-50/90 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-black tracking-wider">
               <tr>
-                <th className="px-4 py-4 w-10">
-                    <button onClick={toggleSelectAll} className="text-primary-600 flex items-center justify-center">
-                        {selectedIds.length === filteredPatients.length && filteredPatients.length > 0 ? <CheckSquare size={20}/> : selectedIds.length > 0 ? <MinusSquare size={20}/> : <Square size={20} className="text-gray-300" />}
-                    </button>
+                <th className="px-3 py-3.5 w-12 text-center">
+                  <button onClick={toggleSelectAll} className="text-primary-600 flex items-center justify-center mx-auto">
+                    {selectedIds.length === filteredPatients.length && filteredPatients.length > 0 ? (
+                      <CheckSquare size={17} />
+                    ) : selectedIds.length > 0 ? (
+                      <MinusSquare size={17} />
+                    ) : (
+                      <Square size={17} className="text-gray-300 dark:text-gray-600" />
+                    )}
+                  </button>
                 </th>
-                <th className="px-6 py-4 font-semibold">نام بیمار</th>
-                <th className="px-6 py-4 font-semibold">شماره تماس</th>
-                <th className="px-6 py-4 font-semibold">کد ملی</th>
-                <th className="px-6 py-4 font-semibold text-center">عملیات</th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <User size={14} className="text-gray-400" />
+                    <span>نام و مشخصات بیمار</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <Phone size={14} className="text-gray-400" />
+                    <span>شماره تماس</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck size={14} className="text-gray-400" />
+                    <span>کد ملی</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Activity size={14} className="text-gray-400" />
+                    <span>تعداد مراجعات</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5 text-center">عملیات پرونده</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredPatients.map((patient) => (
-                <tr key={patient.uuid} className={`hover:bg-gray-50/50 dark:hover:bg-gray-800/30 group transition-colors ${selectedIds.includes(patient.uuid) ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}>
-                    <td className="px-4 py-4 text-center">
-                        <button onClick={() => toggleSelect(patient.uuid)} className={selectedIds.includes(patient.uuid) ? "text-primary-600" : "text-gray-300 hover:text-primary-400"}>
-                          {selectedIds.includes(patient.uuid) ? <CheckSquare size={20}/> : <Square size={20}/>}
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800/70">
+              {filteredPatients.length > 0 ? (
+                filteredPatients.map((patient) => {
+                  const appointmentCount = allAppointments.filter(a => a.patient_id === patient.uuid).length;
+                  const isSelected = selectedIds.includes(patient.uuid);
+                  const firstLetter = patient.name.trim().charAt(0) || 'ب';
+
+                  return (
+                    <tr 
+                      key={patient.uuid} 
+                      className={clsx(
+                        "transition-colors group",
+                        isSelected 
+                          ? "bg-primary-50/40 dark:bg-primary-900/20" 
+                          : "hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                      )}
+                    >
+                      <td className="px-3 py-3.5 text-center">
+                        <button 
+                          onClick={() => toggleSelect(patient.uuid)} 
+                          className={clsx(
+                            "flex items-center justify-center mx-auto transition-colors",
+                            isSelected ? "text-primary-600" : "text-gray-300 hover:text-primary-400 dark:text-gray-600"
+                          )}
+                        >
+                          {isSelected ? <CheckSquare size={17} /> : <Square size={17} />}
                         </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                        {patient.name}
-                        {patient.medical_history && patient.medical_history.length > 0 && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="دارای سابقه بیماری" />}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300 dir-ltr text-right">{patient.phone_number}</td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300 dir-ltr text-right">{patient.id_number || '-'}</td>
-                    <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => navigate(`/patients/${patient.uuid}`)} className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg" title="مشاهده پرونده"><Eye size={18} /></button>
-                            <button onClick={() => handleEditClick(patient)} className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg" title="ویرایش اطلاعات"><Edit size={18} /></button>
-                            <button onClick={() => { if(confirm('حذف شود؟')) deletePatient(patient.uuid); }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg" title="حذف پرونده"><Trash2 size={18} /></button>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 font-black text-sm flex items-center justify-center border border-primary-200/60 dark:border-primary-800/60 shrink-0">
+                            {firstLetter}
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-xs text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">
+                                {patient.name}
+                              </span>
+                              {patient.medical_history && patient.medical_history.length > 0 && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 text-[10px] font-bold border border-rose-200 dark:border-rose-800/60" title="دارای سابقه پزشکی">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                  <span>هشدار پزشکی</span>
+                                </span>
+                              )}
+                            </div>
+                            {patient.notes && (
+                              <span className="text-[10px] text-gray-400 truncate max-w-xs mt-0.5">
+                                {patient.notes}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                    </td>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5 dir-ltr justify-end font-mono font-bold text-xs text-gray-700 dark:text-gray-300">
+                          <span>{patient.phone_number}</span>
+                          <Phone size={12} className="text-gray-400 shrink-0" />
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="font-mono text-xs font-bold text-gray-700 dark:text-gray-300 dir-ltr text-right inline-block">
+                          {patient.id_number || <span className="text-gray-400 font-sans text-[11px]">-</span>}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <span className={clsx(
+                          "px-2.5 py-1 rounded-xl text-[11px] font-black inline-flex items-center gap-1 border",
+                          appointmentCount > 0 
+                            ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/60" 
+                            : "bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-200/60 dark:border-gray-700/60"
+                        )}>
+                          <span>{appointmentCount} نوبت</span>
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button 
+                            onClick={() => navigate(`/patients/${patient.uuid}`)} 
+                            className="px-2.5 py-1.5 text-primary-600 hover:text-white bg-primary-50 hover:bg-primary-600 dark:bg-primary-950/50 dark:hover:bg-primary-600 rounded-xl text-xs font-bold border border-primary-200/80 dark:border-primary-800/60 transition-all flex items-center gap-1 shadow-xs active:scale-95" 
+                            title="مشاهده پرونده کامل بیمار"
+                          >
+                            <Eye size={14} />
+                            <span>پرونده</span>
+                          </button>
+                          <button 
+                            onClick={() => handleEditClick(patient)} 
+                            className="p-1.5 text-gray-500 hover:text-blue-600 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-colors" 
+                            title="ویرایش اطلاعات"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button 
+                            onClick={() => { if(confirm('آیا از حذف این پرونده اطمینان دارید؟')) deletePatient(patient.uuid); }} 
+                            className="p-1.5 text-gray-500 hover:text-red-600 bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-colors" 
+                            title="حذف پرونده"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-14 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <User size={36} className="text-gray-300 dark:text-gray-600" />
+                      <span className="text-gray-500 dark:text-gray-400 font-bold text-xs">
+                        {search ? 'بیماری با این مشخصات یافت نشد.' : 'هنوز هیچ بیماری در سامانه ثبت نشده است.'}
+                      </span>
+                      {search && (
+                        <button
+                          onClick={() => setSearch('')}
+                          className="text-primary-600 hover:underline text-xs font-bold mt-1"
+                        >
+                          پاک کردن عبارت جستجو
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -241,26 +381,26 @@ export const Patients = () => {
 
       {/* --- BULK ACTION FOOTER --- */}
       {selectedIds.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10">
-              <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-                  <div className="w-12 h-12 bg-primary-500 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-primary-500/20">{selectedIds.length}</div>
+          <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white w-[94%] sm:w-auto max-w-2xl px-4 sm:px-8 py-3.5 sm:py-5 rounded-2xl sm:rounded-[2rem] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10">
+              <div className="flex items-center gap-3 sm:gap-4 sm:border-l sm:border-white/10 sm:pl-8">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-500 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-lg sm:text-xl shadow-lg shadow-primary-500/20">{selectedIds.length}</div>
                   <div>
-                    <span className="text-sm font-black block">بیمار انتخاب شده</span>
+                    <span className="text-xs sm:text-sm font-black block">بیمار انتخاب شده</span>
                     <span className="text-[10px] opacity-50 font-bold">آماده عملیات گروهی</span>
                   </div>
               </div>
-              <div className="flex items-center gap-3">
-                  <button onClick={() => setIsSmsModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-500/20">
-                    <MessageSquare size={16} /> پیامک گروهی
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <button onClick={() => setIsSmsModalOpen(true)} className="flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-500/20">
+                    <MessageSquare size={16} /> <span>پیامک گروهی</span>
                   </button>
-                  <button onClick={handleBulkExport} className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl text-xs font-black transition-all border border-white/10">
-                    <Download size={16} /> خروجی اکسل
+                  <button onClick={handleBulkExport} className="flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl text-xs font-black transition-all border border-white/10">
+                    <Download size={16} /> <span>اکسل</span>
                   </button>
-                  <button onClick={handleBulkDelete} className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-red-500/20">
-                    <Trash2 size={16} /> حذف پرونده‌ها
+                  <button onClick={handleBulkDelete} className="flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-red-500/20">
+                    <Trash2 size={16} /> <span>حذف</span>
                   </button>
-                  <button onClick={() => setSelectedIds([])} className="p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-                    <X size={20} />
+                  <button onClick={() => setSelectedIds([])} className="p-2 sm:p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+                    <X size={18} />
                   </button>
               </div>
           </div>
@@ -268,27 +408,27 @@ export const Patients = () => {
 
       {/* Bulk SMS Modal with Cost Prediction */}
       {isSmsModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 !mt-0">
-              <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95">
-                  <div className="bg-blue-600 p-8 text-white relative">
-                      <button onClick={() => setIsSmsModalOpen(false)} className="absolute top-6 left-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"><X size={20} /></button>
-                      <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                            <MessageSquare size={28} />
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 !mt-0">
+              <div className="bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10 animate-in zoom-in-95 max-h-[90vh] flex flex-col">
+                  <div className="bg-blue-600 p-5 sm:p-8 text-white relative shrink-0">
+                      <button onClick={() => setIsSmsModalOpen(false)} className="absolute top-4 left-4 sm:top-6 sm:left-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"><X size={18} /></button>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center backdrop-blur-md shrink-0">
+                            <MessageSquare size={24} />
                           </div>
                           <div>
-                            <h3 className="text-xl font-black">ارسال پیامک گروهی</h3>
-                            <p className="opacity-80 text-xs mt-1 font-bold">ارسال پیام به {selectedIds.length} بیمار انتخاب شده</p>
+                            <h3 className="text-base sm:text-xl font-black">ارسال پیامک گروهی</h3>
+                            <p className="opacity-80 text-[11px] sm:text-xs mt-0.5 font-bold">ارسال پیام به {selectedIds.length} بیمار انتخاب شده</p>
                           </div>
                       </div>
                   </div>
-                  <div className="p-8 space-y-6">
+                  <div className="p-5 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto custom-scrollbar">
                       <div className="space-y-2">
                           <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                               <FileText size={14} /> متن پیام
                           </label>
                           <textarea 
-                              className="w-full p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:border-blue-500 outline-none transition-all dark:text-white min-h-[140px] resize-none text-sm leading-relaxed"
+                              className="w-full p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:border-blue-500 outline-none transition-all dark:text-white min-h-[120px] resize-none text-sm leading-relaxed"
                               placeholder="متن خود را اینجا وارد کنید..."
                               value={smsContent}
                               onChange={e => setSmsContent(e.target.value)}
@@ -300,43 +440,43 @@ export const Patients = () => {
                       </div>
 
                       {/* Cost Prediction Box */}
-                      <div className="bg-primary-50 dark:bg-primary-900/20 p-5 rounded-3xl border border-primary-100 dark:border-primary-800/30 space-y-4">
+                      <div className="bg-primary-50 dark:bg-primary-900/20 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-primary-100 dark:border-primary-800/30 space-y-3 sm:space-y-4">
                           <div className="flex items-center gap-2 text-primary-700 dark:text-primary-400 font-black text-xs uppercase tracking-wider">
                               <Coins size={16} /> پیش‌بینی هزینه ارسال
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-1">
                                   <p className="text-[10px] text-gray-400 font-bold">تعداد کل پیامک‌ها</p>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1.5">
                                       <Users size={14} className="text-gray-400" />
-                                      <span className="text-sm font-black text-gray-700 dark:text-gray-200">{smsStats.totalRecipients * smsStats.pages} عدد</span>
+                                      <span className="text-xs sm:text-sm font-black text-gray-700 dark:text-gray-200">{smsStats.totalRecipients * smsStats.pages} عدد</span>
                                   </div>
                               </div>
-                              <div className="space-y-1 border-r border-primary-100 dark:border-primary-800 pr-4">
+                              <div className="space-y-1 border-r border-primary-100 dark:border-primary-800 pr-3 sm:pr-4">
                                   <p className="text-[10px] text-gray-400 font-bold">هزینه نهایی تخمینی</p>
-                                  <span className="text-lg font-black text-primary-600">{formatCurrency(smsStats.estimatedCost)}</span>
+                                  <span className="text-base sm:text-lg font-black text-primary-600">{formatCurrency(smsStats.estimatedCost)}</span>
                               </div>
                           </div>
                       </div>
 
-                      <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100 dark:border-amber-800/30 flex items-start gap-3">
-                          <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+                      <div className="bg-amber-50 dark:bg-amber-900/10 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-100 dark:border-amber-800/30 flex items-start gap-2.5 sm:gap-3">
+                          <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
                           <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-relaxed">
                               توجه: هزینه نهایی بر اساس تعرفه اپراتور و زمان ارسال ممکن است تغییرات جزئی داشته باشد.
                           </p>
                       </div>
 
-                      <div className="flex gap-4">
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
                           <button 
                             onClick={handleSendBulkSms}
-                            className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-blue-700 shadow-xl shadow-blue-600/20 transition-all transform active:scale-[0.98]"
+                            className="flex-1 py-3.5 sm:py-4 bg-blue-600 text-white rounded-xl sm:rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 sm:gap-3 hover:bg-blue-700 shadow-xl shadow-blue-600/20 transition-all transform active:scale-[0.98]"
                           >
-                              <Send size={20} className="rotate-[-45deg] mb-1" />
+                              <Send size={18} className="rotate-[-45deg] mb-0.5" />
                               <span>تایید و ارسال نهایی</span>
                           </button>
                           <button 
                             onClick={() => setIsSmsModalOpen(false)}
-                            className="px-8 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-2xl font-bold hover:bg-gray-200 transition-all"
+                            className="px-6 py-3 sm:py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl sm:rounded-2xl font-bold hover:bg-gray-200 transition-all text-sm"
                           >
                             انصراف
                           </button>
@@ -348,21 +488,21 @@ export const Patients = () => {
 
       {/* Existing Modal for Add/Edit Patient */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in !mt-0">
-          <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 max-h-[90vh]">
-             <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in !mt-0">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 max-h-[90vh]">
+             <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                    <User className="text-primary-600" size={20} />
                    {editingPatient ? 'ویرایش پرونده بیمار' : 'ایجاد پرونده بیمار جدید'}
                 </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><X size={20} /></button>
              </div>
              
-             <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <form onSubmit={handleSubmit} className="p-5 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                    <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">نام و نام خانوادگی</label>
-                      <input required className="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-white font-bold" value={name} onChange={e => setName(e.target.value)} />
+                      <input required className="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary-500 dark:text-white font-bold text-sm" value={name} onChange={e => setName(e.target.value)} />
                    </div>
                    <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">شماره همراه</label>

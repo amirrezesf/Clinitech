@@ -255,53 +255,61 @@ export const WorkCalendar = () => {
 
       {/* Calendar Grid Container */}
       <div className="flex-1 glass-card rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
-          {/* Header Row */}
-          <div className="grid grid-cols-8 divide-x divide-x-reverse divide-gray-100 dark:divide-gray-800 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-              <div className="p-4 flex items-center justify-center text-gray-400 font-medium text-sm">
-                  <Clock size={18} />
-              </div>
-              {weekDays.map((day, idx) => {
-                  const isToday = day.year === new DateObject({ calendar: persian }).year && 
-                                  day.month.number === new DateObject({ calendar: persian }).month.number && 
-                                  day.day === new DateObject({ calendar: persian }).day;
-                  
-                  const status = checkDayStatus(day);
-                  const isFull = status === 'full';
-                  const isClosed = status === 'closed';
-
-                  return (
-                      <div key={idx} className={clsx(
-                          "p-3 text-center transition-colors border-b-2 relative",
-                          isToday ? "bg-blue-50/50 dark:bg-blue-900/20 border-blue-500" : "border-transparent",
-                          isFull && !isToday ? "bg-red-50/60 dark:bg-red-900/10" : "", // Full booked styling
-                          isClosed && !isToday ? "bg-gray-100/50 dark:bg-gray-900/40 opacity-60 cursor-not-allowed" : ""
-                      )}>
-                          <p className={clsx("text-xs font-medium mb-1", 
-                              isToday ? "text-blue-600 dark:text-blue-400" : 
-                              isFull ? "text-red-600 dark:text-red-400" : 
-                              isClosed ? "text-gray-400" : "text-gray-500"
-                          )}>
-                              {day.format('dddd')}
-                          </p>
-                          <div className={clsx(
-                              "w-8 h-8 rounded-full flex items-center justify-center mx-auto text-sm font-bold transition-all",
-                              isToday ? "bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-none" : 
-                              isFull ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 shadow-sm" : "text-gray-800 dark:text-gray-100"
-                          )}>
-                              {day.day}
-                          </div>
-                          {isFull && (
-                            <span className="block text-[10px] font-bold text-red-500 dark:text-red-400 mt-1 animate-pulse">
-                                تکمیل
-                            </span>
-                          )}
-                      </div>
-                  );
-              })}
+          {/* Mobile Scroll Indicator */}
+          <div className="px-4 py-2 bg-gray-50/80 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 flex md:hidden items-center justify-between text-[11px] font-bold text-gray-500 dark:text-gray-400">
+            <span>نمای هفتگی تقویم</span>
+            <span>← برای مشاهده همه روزها اسکرول کنید</span>
           </div>
 
-          {/* Grid Body */}
-          <div className="flex-1 overflow-y-auto relative bg-white dark:bg-gray-900 custom-scrollbar">
+          <div className="flex-1 overflow-x-auto overflow-y-hidden flex flex-col scrollbar-thin">
+            <div className="min-w-[760px] md:min-w-full flex-1 flex flex-col">
+              {/* Header Row */}
+              <div className="grid grid-cols-8 divide-x divide-x-reverse divide-gray-100 dark:divide-gray-800 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
+                  <div className="p-4 flex items-center justify-center text-gray-400 font-medium text-sm">
+                      <Clock size={18} />
+                  </div>
+                  {weekDays.map((day, idx) => {
+                      const isToday = day.year === new DateObject({ calendar: persian }).year && 
+                                      day.month.number === new DateObject({ calendar: persian }).month.number && 
+                                      day.day === new DateObject({ calendar: persian }).day;
+                      
+                      const status = checkDayStatus(day);
+                      const isFull = status === 'full';
+                      const isClosed = status === 'closed';
+
+                      return (
+                          <div key={idx} className={clsx(
+                              "p-3 text-center transition-colors border-b-2 relative",
+                              isToday ? "bg-blue-50/50 dark:bg-blue-900/20 border-blue-500" : "border-transparent",
+                              isFull && !isToday ? "bg-red-50/60 dark:bg-red-900/10" : "", // Full booked styling
+                              isClosed && !isToday ? "bg-gray-100/50 dark:bg-gray-900/40 opacity-60 cursor-not-allowed" : ""
+                          )}>
+                              <p className={clsx("text-xs font-medium mb-1", 
+                                  isToday ? "text-blue-600 dark:text-blue-400" : 
+                                  isFull ? "text-red-600 dark:text-red-400" : 
+                                  isClosed ? "text-gray-400" : "text-gray-500"
+                              )}>
+                                  {day.format('dddd')}
+                              </p>
+                              <div className={clsx(
+                                  "w-8 h-8 rounded-full flex items-center justify-center mx-auto text-sm font-bold transition-all",
+                                  isToday ? "bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-none" : 
+                                  isFull ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 shadow-sm" : "text-gray-800 dark:text-gray-100"
+                              )}>
+                                  {day.day}
+                              </div>
+                              {isFull && (
+                                <span className="block text-[10px] font-bold text-red-500 dark:text-red-400 mt-1 animate-pulse">
+                                    تکمیل
+                                </span>
+                              )}
+                          </div>
+                      );
+                  })}
+              </div>
+
+              {/* Grid Body */}
+              <div className="flex-1 overflow-y-auto relative bg-white dark:bg-gray-900 custom-scrollbar">
               {/* Time Lines background */}
               <div className="absolute inset-0 grid grid-cols-8 divide-x divide-x-reverse divide-gray-100 dark:divide-gray-800 pointer-events-none">
                   <div className="bg-gray-50/30 dark:bg-gray-800/10"></div> {/* Time Label Column Background */}
@@ -384,7 +392,9 @@ export const WorkCalendar = () => {
                       })}
                   </div>
               </div>
+            </div>
           </div>
+        </div>
       </div>
     </div>
   );

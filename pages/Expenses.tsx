@@ -6,7 +6,7 @@ import { formatCurrency, formatJalaliDate } from '../utils/helpers';
 import { 
   Search, Plus, Trash2, Edit, X, Receipt, Tag, FileText, 
   Upload, Image as ImageIcon, Stethoscope, ChevronDown, 
-  CheckSquare, Square, MinusSquare, DollarSign, Calendar, CheckCircle, Clock, CheckCircle2, Filter
+  CheckSquare, Square, MinusSquare, DollarSign, Calendar, CheckCircle, Clock, CheckCircle2, Filter, Coins
 } from 'lucide-react';
 import { Expense } from '../types';
 import { PersianDatePicker } from '../components/PersianDatePicker';
@@ -265,73 +265,174 @@ export const Expenses = () => {
          </div>
       </div>
 
-      <div className="glass-card rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm min-h-[400px]">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm">
-            <thead className="bg-gray-50/80 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200/80 dark:border-gray-700/60 shadow-xs">
+        {/* Table Top Bar */}
+        <div className="px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50 dark:bg-gray-800/30">
+          <div className="flex items-center gap-2">
+            <Receipt size={16} className="text-red-500" />
+            <span className="text-xs font-black text-gray-800 dark:text-gray-200">فهرست هزینه‌های ثبت‌شده</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300">
+              {filteredExpenses.length} قلم هزینه
+            </span>
+          </div>
+          <div className="text-[11px] font-bold text-gray-400 md:hidden flex items-center gap-1">
+            <span>← برای مشاهده همه ستون‌ها اسکرول کنید</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="w-full text-right text-xs min-w-[780px]">
+            <thead className="bg-gray-50/90 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-black tracking-wider">
               <tr>
-                <th className="px-4 py-4 w-10">
-                    <button onClick={toggleSelectAll} className="text-primary-600">
-                        {selectedIds.length === filteredExpenses.length && filteredExpenses.length > 0 ? <CheckSquare size={20}/> : selectedIds.length > 0 ? <MinusSquare size={20}/> : <Square size={20} className="text-gray-300" />}
-                    </button>
+                <th className="px-3 py-3.5 w-12 text-center">
+                  <button onClick={toggleSelectAll} className="text-primary-600 flex items-center justify-center mx-auto">
+                    {selectedIds.length === filteredExpenses.length && filteredExpenses.length > 0 ? (
+                      <CheckSquare size={17} />
+                    ) : selectedIds.length > 0 ? (
+                      <MinusSquare size={17} />
+                    ) : (
+                      <Square size={17} className="text-gray-300 dark:text-gray-600" />
+                    )}
+                  </button>
                 </th>
-                <th className="px-6 py-4 font-semibold">عنوان هزینه</th>
-                <th className="px-6 py-4 font-semibold">مبلغ</th>
-                <th className="px-6 py-4 font-semibold">دسته‌بندی</th>
-                <th className="px-6 py-4 font-semibold text-center">وضعیت</th>
-                <th className="px-6 py-4 font-semibold">تاریخ</th>
-                <th className="px-6 py-4 font-semibold text-center">عملیات</th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <FileText size={14} className="text-gray-400" />
+                    <span>عنوان و شرح هزینه</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <Coins size={14} className="text-gray-400" />
+                    <span>مبلغ هزینه</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <Tag size={14} className="text-gray-400" />
+                    <span>دسته‌بندی</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Clock size={14} className="text-gray-400" />
+                    <span>وضعیت پرداخت</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={14} className="text-gray-400" />
+                    <span>تاریخ</span>
+                  </div>
+                </th>
+                <th className="px-5 py-3.5 text-center">عملیات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredExpenses.length > 0 ? filteredExpenses.map((expense) => (
-                <tr key={expense.id} className={`hover:bg-gray-50/50 dark:hover:bg-gray-800/30 group transition-colors ${selectedIds.includes(expense.id) ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}>
-                  <td className="px-4 py-4 text-center">
-                    <button onClick={() => toggleSelect(expense.id)} className={selectedIds.includes(expense.id) ? "text-primary-600" : "text-gray-300 hover:text-primary-400"}>
-                        {selectedIds.includes(expense.id) ? <CheckSquare size={20}/> : <Square size={20}/>}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900 dark:text-white">{expense.title}</div>
-                      {expense.doctor_id && (
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800/70">
+              {filteredExpenses.length > 0 ? filteredExpenses.map((expense) => {
+                const isSelected = selectedIds.includes(expense.id);
+                return (
+                  <tr 
+                    key={expense.id} 
+                    className={clsx(
+                      "transition-colors group",
+                      isSelected 
+                        ? "bg-red-50/30 dark:bg-red-950/20" 
+                        : "hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                    )}
+                  >
+                    <td className="px-3 py-3.5 text-center">
+                      <button 
+                        onClick={() => toggleSelect(expense.id)} 
+                        className={clsx(
+                          "flex items-center justify-center mx-auto transition-colors",
+                          isSelected ? "text-primary-600" : "text-gray-300 hover:text-primary-400 dark:text-gray-600"
+                        )}
+                      >
+                        {isSelected ? <CheckSquare size={17} /> : <Square size={17} />}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex flex-col">
+                        <span className="font-black text-xs text-gray-900 dark:text-white">
+                          {expense.title}
+                        </span>
+                        {expense.doctor_id && (
                           <div className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
-                              <Stethoscope size={10} />
-                              {doctors.find(d => d.id === expense.doctor_id)?.name}
+                            <Stethoscope size={11} className="text-primary-500" />
+                            <span>{doctors.find(d => d.id === expense.doctor_id)?.name}</span>
                           </div>
-                      )}
-                  </td>
-                  <td className="px-6 py-4 font-black text-red-600 dark:text-red-400">{formatCurrency(expense.amount)}</td>
-                  <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-black border border-gray-200 dark:border-gray-600">
-                          <Tag size={10} />
-                          {expense.category}
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="font-black text-xs text-red-600 dark:text-red-400 font-mono">
+                        {formatCurrency(expense.amount)}
                       </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-black border border-gray-200 dark:border-gray-700">
+                        <Tag size={10} className="text-gray-400" />
+                        <span>{expense.category}</span>
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
                       <button 
                         type="button"
                         onClick={() => handleToggleStatus(expense)}
                         title="کلیک برای تغییر وضعیت پرداخت"
                         className={clsx(
-                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer",
+                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer",
                           expense.status === 'paid' 
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 hover:bg-green-200" 
-                            : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-200"
-                      )}>
-                          {expense.status === 'paid' ? <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" /> : <Clock size={12} className="text-amber-600 dark:text-amber-400" />}
-                          <span>{expense.status === 'paid' ? 'پرداخت شده' : 'در انتظار پرداخت'}</span>
+                            ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100" 
+                            : "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-100"
+                        )}
+                      >
+                        {expense.status === 'paid' ? (
+                          <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                          <Clock size={12} className="text-amber-600 dark:text-amber-400" />
+                        )}
+                        <span>{expense.status === 'paid' ? 'پرداخت شده' : 'در انتظار پرداخت'}</span>
                       </button>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 dir-ltr text-right">{formatJalaliDate(expense.date)}</td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEditClick(expense)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"><Edit size={18} /></button>
-                        <button onClick={() => { if(confirm('حذف شود؟')) deleteExpense(expense.id); }} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"><Trash2 size={18} /></button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300 text-[11px] font-bold dir-ltr justify-end">
+                        <span>{formatJalaliDate(expense.date)}</span>
+                        <Calendar size={11} className="text-gray-400" />
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button 
+                          onClick={() => handleEditClick(expense)} 
+                          className="p-1.5 text-gray-500 hover:text-blue-600 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-colors" 
+                          title="ویرایش هزینه"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button 
+                          onClick={() => { if(confirm('آیا از حذف این هزینه اطمینان دارید؟')) deleteExpense(expense.id); }} 
+                          className="p-1.5 text-gray-500 hover:text-red-600 bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-colors" 
+                          title="حذف هزینه"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-14 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Receipt size={36} className="text-gray-300 dark:text-gray-600" />
+                      <span className="text-gray-500 dark:text-gray-400 font-bold text-xs">
+                        {search ? 'هزینه‌ای با این مشخصات یافت نشد.' : 'هنوز هیچ هزینه‌ای ثبت نشده است.'}
+                      </span>
                     </div>
                   </td>
                 </tr>
-              )) : (
-                  <tr><td colSpan={7} className="py-12 text-center text-gray-400 italic font-bold">هزینه‌ای یافت نشد.</td></tr>
               )}
             </tbody>
           </table>
@@ -339,9 +440,9 @@ export const Expenses = () => {
       </div>
 
       {selectedIds.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10">
-              <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-                  <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-red-500/20">{selectedIds.length}</div>
+          <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white w-[94%] sm:w-auto max-w-2xl px-4 sm:px-8 py-3.5 sm:py-5 rounded-2xl sm:rounded-[2rem] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10">
+              <div className="flex items-center gap-3 sm:gap-4 sm:border-l sm:border-white/10 sm:pl-8">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-lg sm:text-xl shadow-lg shadow-red-500/20">{selectedIds.length}</div>
                   <div>
                     <span className="text-sm font-black block">هزینه انتخاب شده</span>
                     <span className="text-[10px] opacity-50 font-bold">آماده حذف گروهی</span>

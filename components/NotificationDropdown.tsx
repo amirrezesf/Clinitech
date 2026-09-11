@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Bell, Check, CheckCheck, Trash2, Calendar, AlertTriangle, UserCheck, DollarSign, Clock, Info, ChevronLeft, Volume2, VolumeX } from 'lucide-react';
+import { 
+  Bell, Check, CheckCheck, Trash2, Calendar, AlertTriangle, 
+  UserCheck, DollarSign, Clock, Info, ChevronLeft, X 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import clsx from 'clsx';
@@ -54,9 +57,24 @@ export const NotificationDropdown: React.FC = () => {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen]);
 
   // Generate dynamic notifications based on app data
   const rawNotifications = useMemo<NotificationItem[]>(() => {
@@ -189,6 +207,17 @@ export const NotificationDropdown: React.FC = () => {
     }
   };
 
+  // Prevent body scroll on small mobile screens when notifications dropdown is open
+  useEffect(() => {
+    if (isOpen && window.innerWidth < 640) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   const getIcon = (type: NotificationItem['type']) => {
     switch (type) {
       case 'patient':
@@ -226,7 +255,7 @@ export const NotificationDropdown: React.FC = () => {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
-          "p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl relative transition-all outline-none focus:ring-2 focus:ring-emerald-500/20",
+          "p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl relative transition-all outline-none focus:ring-2 focus:ring-emerald-500/20 active:scale-95",
           isOpen && "bg-gray-100 dark:bg-gray-800 text-emerald-600 dark:text-emerald-400"
         )}
         title="اعلان‌های سیستم"
@@ -240,18 +269,35 @@ export const NotificationDropdown: React.FC = () => {
         )}
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Mobile Dimmed Backdrop */}
       {isOpen && (
-        <div className="absolute left-0 mt-3 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 sm:hidden animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Dropdown Menu (Responsive: Fixed centered modal on phones, anchored popover on desktop) */}
+      {isOpen && (
+        <div 
+          className={clsx(
+            "bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200",
+            // Mobile: Fixed with 12px safe margins below the header
+            "fixed left-3 right-3 top-[4.75rem] max-h-[calc(100vh-6rem)] z-50 flex flex-col",
+            // Desktop: Anchored relative dropdown
+            "sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-2 sm:w-96 sm:max-h-[560px]"
+          )}
+        >
           {/* Header */}
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/80 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <div className="p-3.5 sm:p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/80 flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-xl shrink-0">
                 <Bell size={18} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">اعلان‌های سیستم</h3>
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">اعلان‌های سیستم</h3>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                   {unreadCount > 0
                     ? `${new Intl.NumberFormat('fa-IR').format(unreadCount)} پیام خوانده‌نشده`
                     : 'پیام جدیدی ندارید'}
@@ -259,38 +305,48 @@ export const NotificationDropdown: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {unreadCount > 0 && (
                 <button
                   type="button"
                   onClick={handleMarkAllAsRead}
-                  className="p-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors flex items-center gap-1 font-medium"
+                  className="p-1.5 px-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors flex items-center gap-1 font-medium active:scale-95"
                   title="علامت‌گذاری همه به عنوان خوانده شده"
                 >
-                  <CheckCheck size={15} />
-                  <span className="hidden sm:inline">خوانده شد</span>
+                  <CheckCheck size={16} />
+                  <span className="hidden sm:inline text-[11px]">خواندن همه</span>
                 </button>
               )}
               {rawNotifications.length > 0 && (
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95"
                   title="پاکسازی اعلان‌ها"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={16} />
                 </button>
               )}
+              {/* Close button for phones */}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors sm:hidden"
+                title="بستن"
+                aria-label="بستن پنجره اعلان‌ها"
+              >
+                <X size={18} />
+              </button>
             </div>
           </div>
 
           {/* Filter Tabs */}
-          <div className="px-4 pt-3 pb-2 flex gap-2 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="px-3 sm:px-4 pt-2.5 pb-2 flex gap-2 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab('all')}
               className={clsx(
-                'px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                'flex-1 sm:flex-initial text-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
                 activeTab === 'all'
                   ? 'bg-emerald-500 text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -302,7 +358,7 @@ export const NotificationDropdown: React.FC = () => {
               type="button"
               onClick={() => setActiveTab('unread')}
               className={clsx(
-                'px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                'flex-1 sm:flex-initial text-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
                 activeTab === 'unread'
                   ? 'bg-emerald-500 text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -313,7 +369,7 @@ export const NotificationDropdown: React.FC = () => {
           </div>
 
           {/* Notification List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50 custom-scrollbar">
+          <div className="max-h-[55vh] sm:max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50 custom-scrollbar overscroll-contain">
             {filteredNotifications.length === 0 ? (
               <div className="p-8 text-center text-gray-400 dark:text-gray-500">
                 <Bell className="w-10 h-10 mx-auto mb-2 stroke-[1.5] opacity-40" />
@@ -325,8 +381,8 @@ export const NotificationDropdown: React.FC = () => {
                   key={item.id}
                   onClick={() => handleNotificationClick(item)}
                   className={clsx(
-                    'p-3.5 transition-colors cursor-pointer flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 relative group',
-                    !item.isRead ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : 'opacity-85'
+                    'p-3 sm:p-3.5 transition-colors cursor-pointer flex items-start gap-2.5 sm:gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 relative group active:bg-gray-100 dark:active:bg-gray-700/80',
+                    !item.isRead ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : 'opacity-85'
                   )}
                 >
                   {/* Category Badge Icon */}
@@ -340,24 +396,29 @@ export const NotificationDropdown: React.FC = () => {
                       <h4 className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">
                         {item.title}
                       </h4>
-                      <span className="text-[10px] text-gray-400 shrink-0">{item.timestamp}</span>
+                      <span className="text-[10px] text-gray-400 shrink-0 font-medium">{item.timestamp}</span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                       {item.message}
                     </p>
                   </div>
 
-                  {/* Actions / Read Indicator */}
-                  <div className="shrink-0 flex items-center gap-1 self-center">
+                  {/* Actions / Read Indicator with accessible hit area */}
+                  <div className="shrink-0 flex items-center self-center pl-1">
                     {!item.isRead ? (
                       <button
                         type="button"
                         onClick={(e) => handleMarkAsRead(item.id, e)}
-                        className="w-2.5 h-2.5 bg-emerald-500 rounded-full hover:scale-125 transition-transform"
+                        className="w-7 h-7 flex items-center justify-center hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full transition-colors group/btn"
                         title="علامت‌گذاری به عنوان خوانده شده"
-                      />
+                        aria-label="خوانده شد"
+                      >
+                        <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full group-hover/btn:scale-125 transition-transform" />
+                      </button>
                     ) : (
-                      <Check className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" />
+                      <div className="w-7 h-7 flex items-center justify-center text-gray-300 dark:text-gray-600">
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -366,14 +427,14 @@ export const NotificationDropdown: React.FC = () => {
           </div>
 
           {/* Footer Navigation Link */}
-          <div className="p-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/80 text-center">
+          <div className="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/80 text-center shrink-0">
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 navigate('/notifications');
               }}
-              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors"
+              className="w-full sm:w-auto py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center justify-center gap-1.5 transition-colors"
             >
               <span>مشاهده تمامی اعلان‌ها</span>
               <ChevronLeft size={14} className="rotate-180" />

@@ -63,28 +63,28 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">داشبورد مدیریتی</h2>
-          <p className="text-gray-500 mt-1">خوش آمدید، گزارش عملکرد امروز شما</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">داشبورد مدیریتی</h2>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">خوش آمدید، گزارش عملکرد امروز شما</p>
         </div>
-        <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 text-sm text-gray-600">
+        <div className="bg-white dark:bg-gray-800 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-xs border border-gray-100 dark:border-gray-700 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
            {new Date().toLocaleDateString('fa-IR')}
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, idx) => {
            const Icon = stat.icon;
            return (
-            <div key={idx} className="glass-card p-6 rounded-2xl flex items-center gap-4 transition-transform hover:-translate-y-1">
-              <div className={`p-4 rounded-xl ${stat.bg}`}>
-                <Icon className={stat.color} size={24} />
+            <div key={idx} className="glass-card p-4 sm:p-6 rounded-2xl flex items-center gap-3 sm:gap-4 transition-transform hover:-translate-y-1">
+              <div className={`p-3 sm:p-4 rounded-xl ${stat.bg} shrink-0`}>
+                <Icon className={stat.color} size={22} />
               </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium mb-1">{stat.label}</p>
-                <h3 className="text-xl font-bold text-gray-800">{stat.value}</h3>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1 truncate">{stat.label}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white truncate">{stat.value}</h3>
               </div>
             </div>
            );
@@ -93,41 +93,41 @@ export const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chart */}
-        <div className="lg:col-span-2 glass-card p-6 rounded-2xl">
+        <div className="lg:col-span-2 glass-card p-4 sm:p-6 rounded-2xl">
            <div className="flex justify-between items-center mb-6">
-             <h3 className="font-bold text-gray-800 flex items-center gap-2">
+             <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 text-sm sm:text-base">
                <TrendingUp size={20} className="text-primary-600"/>
                آمار مراجعات هفتگی
              </h3>
            </div>
-           <div className="h-64 w-full">
+           <div className="h-56 sm:h-64 w-full">
              <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                 <XAxis dataKey="name" tick={{fontFamily: 'Vazirmatn'}} />
-                 <YAxis tick={{fontFamily: 'Vazirmatn'}} />
+                 <XAxis dataKey="name" tick={{fontFamily: 'Vazirmatn', fontSize: 11}} />
+                 <YAxis tick={{fontFamily: 'Vazirmatn', fontSize: 11}} />
                  <Tooltip 
                     contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Vazirmatn', textAlign: 'right'}}
                     cursor={{fill: '#f8fafc'}}
                  />
-                 <Bar dataKey="visits" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={40} />
+                 <Bar dataKey="visits" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={28} />
                </BarChart>
              </ResponsiveContainer>
            </div>
         </div>
 
         {/* Pie Chart */}
-        <div className="glass-card p-6 rounded-2xl">
-          <h3 className="font-bold text-gray-800 mb-6">توزیع دلایل مراجعه</h3>
-          <div className="h-64 w-full flex justify-center items-center">
+        <div className="glass-card p-4 sm:p-6 rounded-2xl">
+          <h3 className="font-bold text-gray-800 dark:text-white mb-4 sm:mb-6 text-sm sm:text-base">توزیع دلایل مراجعه</h3>
+          <div className="h-56 sm:h-64 w-full flex justify-center items-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={50}
+                  outerRadius={70}
                   fill="#8884d8"
                   paddingAngle={5}
                   dataKey="value"
@@ -140,11 +140,11 @@ export const Dashboard = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-600 mt-2">
+          <div className="flex flex-wrap justify-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 mt-2">
              {pieData.map((d, i) => (
-                <div key={i} className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-full">
-                   <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}}></div>
-                   <span>{d.name}</span>
+                <div key={i} className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800/80 px-2 py-1 rounded-full border border-gray-100 dark:border-gray-700">
+                   <div className="w-2 h-2 rounded-full shrink-0" style={{backgroundColor: COLORS[i % COLORS.length]}}></div>
+                   <span className="truncate max-w-[120px]">{d.name}</span>
                 </div>
              ))}
           </div>

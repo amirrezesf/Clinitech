@@ -8,7 +8,7 @@ import {
   Stethoscope, Eye, Printer, Trash2, Tag, Hash, CalendarDays, 
   Download, Camera, Minus, PlusCircle, CheckCheck, AlertCircle, 
   DollarSign, Smartphone, Sparkles, Filter, AlertTriangle, ArrowUpRight,
-  Receipt, SlidersHorizontal
+  Receipt, SlidersHorizontal, Coins
 } from 'lucide-react';
 import { PersianDatePicker } from '../components/PersianDatePicker';
 import { AppointmentPaymentModal } from '../components/AppointmentPaymentModal';
@@ -407,119 +407,195 @@ export const Payments = () => {
       </div>
 
       {/* Main Table Container */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xs min-h-[400px] no-print">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200/80 dark:border-gray-700/60 shadow-xs min-h-[400px] no-print">
+         {/* Table Top Bar */}
+         <div className="px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50 dark:bg-gray-800/30">
+           <div className="flex items-center gap-2">
+             {activeTab === 'payments' ? (
+               <>
+                 <CreditCard size={16} className="text-primary-600 dark:text-primary-400" />
+                 <span className="text-xs font-black text-gray-800 dark:text-gray-200">دفتر کل تراکنش‌های ثبت‌شده</span>
+                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300">
+                   {filteredPayments.length} تراکنش
+                 </span>
+               </>
+             ) : (
+               <>
+                 <Layers size={16} className="text-blue-600 dark:text-blue-400" />
+                 <span className="text-xs font-black text-gray-800 dark:text-gray-200">دفتر اقساط و تعهدات پرداختی</span>
+                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                   {filteredInstallments.length} قسط / تعهد
+                 </span>
+               </>
+             )}
+           </div>
+           <div className="text-[11px] font-bold text-gray-400 md:hidden flex items-center gap-1">
+             <span>← برای مشاهده همه ستون‌ها اسکرول کنید</span>
+           </div>
+         </div>
+
          {activeTab === 'payments' ? (
-             <div className="overflow-x-auto">
-                 <table className="w-full text-right text-xs">
-                    <thead className="bg-gray-50/90 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
-                        <tr>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">بیمار</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">درگاه و روش</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">بابت سرویس / شرح</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">مبلغ پرداختی</th>
-                            <th className="px-4 py-3 text-center font-black uppercase tracking-wider text-[11px]">تاریخ ثبت</th>
-                            <th className="px-4 py-3 text-center font-black uppercase tracking-wider text-[11px]">رسید</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {filteredPayments.length > 0 ? (
-                            filteredPayments.map(p => (
-                                <tr key={p.uuid} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors group">
-                                    <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">
-                                      <div className="flex flex-col">
-                                        <span className="font-black text-xs text-gray-900 dark:text-white">{getPatientName(p.patient_id)}</span>
-                                        {p.appointment_uuid ? (
-                                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                            <CheckCheck size={11} /> متصل به نوبت
-                                          </span>
-                                        ) : p.installment_uuid ? (
-                                          <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
-                                            <Layers size={11} /> وصول قسط / تعهد
-                                          </span>
-                                        ) : (
-                                          <span className="text-[10px] text-gray-400">تراکنش مستقیم</span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                      <div className="flex flex-col gap-0.5 items-start">
-                                        <span className={clsx(
-                                          "px-2 py-0.5 rounded-md text-[10px] font-black border flex items-center gap-1",
-                                          p.payment_method === 'pos' ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" :
-                                          p.payment_method === 'cash' ? "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800" :
-                                          p.payment_method === 'card_to_card' ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" :
-                                          "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
-                                        )}>
-                                          {p.payment_method === 'pos' && <CreditCard size={10} />}
-                                          {p.payment_method === 'cash' && <DollarSign size={10} />}
-                                          {p.payment_method === 'card_to_card' && <Smartphone size={10} />}
-                                          {p.payment_method === 'debt' && <Clock size={10} />}
-                                          <span>
-                                            {p.payment_method === 'pos' ? 'کارت‌خوان' :
-                                             p.payment_method === 'cash' ? 'نقد' :
-                                             p.payment_method === 'card_to_card' ? 'کارت به کارت' : 'بدهی / تعهد'}
-                                          </span>
-                                        </span>
-                                        {p.reference_number && (
-                                          <span className="text-[10px] text-gray-400 font-mono dir-ltr">
-                                            RRN: {p.reference_number}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                      <div className="flex flex-col gap-0.5">
-                                        <span className="font-bold text-gray-800 dark:text-gray-200 text-xs">
-                                          {getReasonText(p)}
-                                        </span>
-                                        {p.discount && p.discount > 0 ? (
-                                          <span className="text-[10px] text-emerald-600 font-black">
-                                            تخفیف: {formatCurrency(p.discount)}
-                                          </span>
-                                        ) : null}
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3 font-black text-xs text-emerald-600 dark:text-emerald-400 font-mono">
-                                      {formatCurrency(p.amount)}
-                                    </td>
-                                    <td className="px-4 py-3 text-gray-500 dir-ltr text-center font-bold text-xs">
-                                      {formatJalaliDate(p.date)}
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <button 
-                                          onClick={() => setViewingPayment(p)} 
-                                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl transition-all" 
-                                          title="مشاهده فیش و چاپ رسید"
-                                        >
-                                          <Eye size={16} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                              <td colSpan={6} className="text-center py-10 text-gray-400 font-bold italic text-xs">
-                                تراکنشی با فیلترهای انتخابی یافت نشد.
-                              </td>
-                            </tr>
-                        )}
-                    </tbody>
-                 </table>
-             </div>
+              <div className="overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-right text-xs min-w-[820px]">
+                     <thead className="bg-gray-50/90 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-black tracking-wider">
+                         <tr>
+                             <th className="px-5 py-3.5">
+                               <div className="flex items-center gap-1.5">
+                                 <User size={13} className="text-gray-400" />
+                                 <span>بیمار و پرونده</span>
+                               </div>
+                             </th>
+                             <th className="px-5 py-3.5">
+                               <div className="flex items-center gap-1.5">
+                                 <CreditCard size={13} className="text-gray-400" />
+                                 <span>درگاه و روش پرداخت</span>
+                               </div>
+                             </th>
+                             <th className="px-5 py-3.5">
+                               <div className="flex items-center gap-1.5">
+                                 <FileText size={13} className="text-gray-400" />
+                                 <span>بابت سرویس / شرح</span>
+                               </div>
+                             </th>
+                             <th className="px-5 py-3.5">
+                               <div className="flex items-center gap-1.5">
+                                 <Coins size={13} className="text-gray-400" />
+                                 <span>مبلغ پرداختی</span>
+                               </div>
+                             </th>
+                             <th className="px-5 py-3.5 text-center">
+                               <div className="flex items-center justify-center gap-1.5">
+                                 <Calendar size={13} className="text-gray-400" />
+                                 <span>تاریخ ثبت</span>
+                               </div>
+                             </th>
+                             <th className="px-5 py-3.5 text-center">رسید و فیش</th>
+                         </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800/70">
+                         {filteredPayments.length > 0 ? (
+                             filteredPayments.map(p => (
+                                 <tr key={p.uuid} className="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors group">
+                                     <td className="px-5 py-3.5 font-bold text-gray-900 dark:text-white">
+                                       <div className="flex flex-col">
+                                         <span className="font-black text-xs text-gray-900 dark:text-white">{getPatientName(p.patient_id)}</span>
+                                         {p.appointment_uuid ? (
+                                           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                                             <CheckCheck size={11} /> متصل به نوبت
+                                           </span>
+                                         ) : p.installment_uuid ? (
+                                           <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1 mt-0.5">
+                                             <Layers size={11} /> وصول قسط / تعهد
+                                           </span>
+                                         ) : (
+                                           <span className="text-[10px] text-gray-400 mt-0.5">تراکنش مستقیم</span>
+                                         )}
+                                       </div>
+                                     </td>
+                                     <td className="px-5 py-3.5">
+                                       <div className="flex flex-col gap-0.5 items-start">
+                                         <span className={clsx(
+                                           "px-2.5 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1.5",
+                                           p.payment_method === 'pos' ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" :
+                                           p.payment_method === 'cash' ? "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800" :
+                                           p.payment_method === 'card_to_card' ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" :
+                                           "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                                         )}>
+                                           {p.payment_method === 'pos' && <CreditCard size={11} />}
+                                           {p.payment_method === 'cash' && <DollarSign size={11} />}
+                                           {p.payment_method === 'card_to_card' && <Smartphone size={11} />}
+                                           {p.payment_method === 'debt' && <Clock size={11} />}
+                                           <span>
+                                             {p.payment_method === 'pos' ? 'کارت‌خوان' :
+                                              p.payment_method === 'cash' ? 'نقد' :
+                                              p.payment_method === 'card_to_card' ? 'کارت به کارت' : 'بدهی / تعهد'}
+                                           </span>
+                                         </span>
+                                         {p.reference_number && (
+                                           <span className="text-[10px] text-gray-400 font-mono dir-ltr mt-0.5">
+                                             RRN: {p.reference_number}
+                                           </span>
+                                         )}
+                                       </div>
+                                     </td>
+                                     <td className="px-5 py-3.5">
+                                       <div className="flex flex-col gap-0.5">
+                                         <span className="font-bold text-gray-800 dark:text-gray-200 text-xs">
+                                           {getReasonText(p)}
+                                         </span>
+                                         {p.discount && p.discount > 0 ? (
+                                           <span className="text-[10px] text-emerald-600 font-black">
+                                             تخفیف: {formatCurrency(p.discount)}
+                                           </span>
+                                         ) : null}
+                                       </div>
+                                     </td>
+                                     <td className="px-5 py-3.5 font-black text-xs text-emerald-600 dark:text-emerald-400 font-mono">
+                                       {formatCurrency(p.amount)}
+                                     </td>
+                                     <td className="px-5 py-3.5 text-gray-500 dir-ltr text-center font-bold text-xs">
+                                       {formatJalaliDate(p.date)}
+                                     </td>
+                                     <td className="px-5 py-3.5 text-center">
+                                         <button 
+                                           onClick={() => setViewingPayment(p)} 
+                                           className="p-2 text-emerald-600 hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl transition-all border border-emerald-200 dark:border-emerald-800 shadow-xs" 
+                                           title="مشاهده فیش و چاپ رسید"
+                                         >
+                                           <Eye size={15} />
+                                         </button>
+                                     </td>
+                                 </tr>
+                             ))
+                         ) : (
+                             <tr>
+                               <td colSpan={6} className="text-center py-14 text-gray-400 font-bold text-xs">
+                                 تراکنشی با فیلترهای انتخابی یافت نشد.
+                               </td>
+                             </tr>
+                         )}
+                     </tbody>
+                  </table>
+              </div>
          ) : (
-             <div className="overflow-x-auto">
-                 <table className="w-full text-right text-xs">
-                    <thead className="bg-gray-50/90 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+             <div className="overflow-x-auto scrollbar-thin">
+                 <table className="w-full text-right text-xs min-w-[840px]">
+                    <thead className="bg-gray-50/90 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-black tracking-wider">
                         <tr>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">بیمار</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">نوع تعهد و شرح</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">مبلغ قسط</th>
-                            <th className="px-4 py-3 text-center font-black uppercase tracking-wider text-[11px]">موعد سررسید</th>
-                            <th className="px-4 py-3 font-black uppercase tracking-wider text-[11px]">وضعیت</th>
-                            <th className="px-4 py-3 text-center font-black uppercase tracking-wider text-[11px]">عملیات</th>
+                            <th className="px-5 py-3.5">
+                              <div className="flex items-center gap-1.5">
+                                <User size={13} className="text-gray-400" />
+                                <span>بیمار و متعهد</span>
+                              </div>
+                            </th>
+                            <th className="px-5 py-3.5">
+                              <div className="flex items-center gap-1.5">
+                                <FileText size={13} className="text-gray-400" />
+                                <span>نوع تعهد و شرح</span>
+                              </div>
+                            </th>
+                            <th className="px-5 py-3.5">
+                              <div className="flex items-center gap-1.5">
+                                <Coins size={13} className="text-gray-400" />
+                                <span>مبلغ تعهد</span>
+                              </div>
+                            </th>
+                            <th className="px-5 py-3.5 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <Calendar size={13} className="text-gray-400" />
+                                <span>موعد سررسید</span>
+                              </div>
+                            </th>
+                            <th className="px-5 py-3.5 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <Clock size={13} className="text-gray-400" />
+                                <span>وضعیت</span>
+                              </div>
+                            </th>
+                            <th className="px-5 py-3.5 text-center">عملیات مالی</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800/70">
                         {filteredInstallments.length > 0 ? (filteredInstallments.map(i => {
                             const now = new Date();
                             now.setHours(0, 0, 0, 0);
@@ -528,17 +604,17 @@ export const Payments = () => {
                             const isPromise = isPayLaterPromise(i);
 
                             return (
-                              <tr key={i.uuid} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors group">
-                                  <td className="px-4 py-3 font-black text-xs text-gray-900 dark:text-white">
+                              <tr key={i.uuid} className="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors group">
+                                  <td className="px-5 py-3.5 font-black text-xs text-gray-900 dark:text-white">
                                     {getPatientName(i.patient_id)}
                                   </td>
-                                  <td className="px-4 py-3">
+                                  <td className="px-5 py-3.5">
                                     <div className="flex items-center gap-1.5 max-w-sm">
                                       <span className={clsx(
-                                        "px-1.5 py-0.5 rounded text-[10px] font-black shrink-0",
+                                        "px-2 py-0.5 rounded-lg text-[10px] font-black shrink-0 border",
                                         isPromise 
-                                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                                          : "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                                          ? "bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
+                                          : "bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                                       )}>
                                         {isPromise ? 'موکول به بعد' : 'قسط'}
                                       </span>
@@ -547,10 +623,10 @@ export const Payments = () => {
                                       </span>
                                     </div>
                                   </td>
-                                  <td className="px-4 py-3 font-black text-xs text-gray-900 dark:text-white font-mono">
+                                  <td className="px-5 py-3.5 font-black text-xs text-gray-900 dark:text-white font-mono">
                                     {formatCurrency(i.amount)}
                                   </td>
-                                  <td className="px-4 py-3 text-center dir-ltr font-bold text-xs">
+                                  <td className="px-5 py-3.5 text-center dir-ltr font-bold text-xs">
                                     <span className={clsx(
                                       isOverdue ? "text-rose-600 dark:text-rose-400 font-black" : "text-gray-600 dark:text-gray-300"
                                     )}>
@@ -558,27 +634,27 @@ export const Payments = () => {
                                       {isOverdue && <span className="block text-[10px] text-rose-500 font-bold">مهلت گذشته</span>}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-3">
+                                  <td className="px-5 py-3.5 text-center">
                                       {i.status === 'paid' ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-800">
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-800">
                                             <CheckCircle size={10} /> وصول‌شده
                                           </span>
                                       ) : isOverdue ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-black border border-rose-200 dark:border-rose-800">
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-black border border-rose-200 dark:border-rose-800">
                                             <AlertTriangle size={10} /> معوق / تاخیر
                                           </span>
                                       ) : (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-black border border-amber-200 dark:border-amber-800">
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-black border border-amber-200 dark:border-amber-800">
                                             <Clock size={10} /> در انتظار سررسید
                                           </span>
                                       )}
                                   </td>
-                                  <td className="px-4 py-3 text-center">
+                                  <td className="px-5 py-3.5 text-center">
                                       {i.status !== 'paid' ? (
                                         <button 
                                           onClick={() => handleOpenCollectModal(i)} 
                                           className={clsx(
-                                            "text-white px-3 py-1.5 rounded-xl text-[11px] font-black transition-all shadow-xs flex items-center gap-1 mx-auto",
+                                            "text-white px-3.5 py-1.5 rounded-xl text-[11px] font-black transition-all shadow-xs flex items-center gap-1.5 mx-auto",
                                             isPromise 
                                               ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20" 
                                               : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
@@ -597,7 +673,7 @@ export const Payments = () => {
                             );
                         })) : (
                             <tr>
-                              <td colSpan={6} className="text-center py-10 text-gray-400 font-bold italic text-xs">
+                              <td colSpan={6} className="text-center py-14 text-gray-400 font-bold text-xs">
                                 موردی در دفترچه اقساط و مطالبات با فیلترهای انتخابی یافت نشد.
                               </td>
                             </tr>

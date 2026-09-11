@@ -319,18 +319,18 @@ export const Secretaries = () => {
                                                 <div 
                                                     onClick={() => setExpandedModule(isExpanded ? null : m.id)}
                                                     className={clsx(
-                                                        "px-6 py-4 flex items-center justify-between cursor-pointer transition-colors",
+                                                        "px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer transition-colors",
                                                         isExpanded ? "bg-primary-50 dark:bg-primary-900/20" : "bg-white dark:bg-gray-800/40 hover:bg-gray-50 dark:hover:bg-gray-800"
                                                     )}
                                                 >
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-3 sm:gap-4">
                                                         <div className="p-2 bg-white dark:bg-gray-700 rounded-xl shadow-sm text-primary-600"><m.icon size={20} /></div>
                                                         <span className="font-black text-sm text-gray-800 dark:text-white">{m.label}</span>
                                                     </div>
                                                     
-                                                    <div className="flex items-center gap-6" onClick={e => e.stopPropagation()}>
-                                                        <div className="flex items-center gap-3 bg-white dark:bg-gray-700 px-4 py-2 rounded-xl shadow-inner border border-gray-100 dark:border-gray-600">
-                                                            <span className="text-[10px] font-black text-gray-400 ml-2">دسترسی کلی:</span>
+                                                    <div className="flex items-center justify-between w-full sm:w-auto gap-3 sm:gap-6" onClick={e => e.stopPropagation()}>
+                                                        <div className="flex items-center gap-2 sm:gap-3 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 rounded-xl shadow-inner border border-gray-100 dark:border-gray-600">
+                                                            <span className="text-[10px] font-black text-gray-400 ml-1 sm:ml-2">دسترسی کلی:</span>
                                                             {ACTIONS.map((a) => (
                                                                 <label key={a.id} className="relative flex items-center cursor-pointer group/chk" title={a.label}>
                                                                     <input 
@@ -352,9 +352,9 @@ export const Secretaries = () => {
                                                 </div>
 
                                                 {isExpanded && (
-                                                    <div className="bg-gray-50/50 dark:bg-gray-900/30 p-6 border-t border-gray-100 dark:border-gray-700 animate-in slide-in-from-top-1">
-                                                        <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                                                            <table className="w-full text-right text-xs">
+                                                    <div className="bg-gray-50/50 dark:bg-gray-900/30 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-700 animate-in slide-in-from-top-1">
+                                                        <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 scrollbar-thin">
+                                                            <table className="w-full text-right text-xs min-w-[500px]">
                                                                 <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 font-black border-b border-gray-200 dark:border-gray-700">
                                                                     <tr>
                                                                         <th className="px-6 py-3 font-black">فیلد اختصاصی</th>

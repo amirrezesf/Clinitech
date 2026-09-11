@@ -99,6 +99,7 @@ export interface AppointmentReason {
   price: number;
   doctor_id: number;
 }
+export type Reason = AppointmentReason;
 
 export type AppointmentStatus = '0' | '1' | '2' | '3' | '4' | 'pending' | 'present' | 'in_visit' | 'finished' | 'absent' | 'cancelled' | 'interrupted' | 'forfeited';
 

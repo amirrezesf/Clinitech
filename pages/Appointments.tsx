@@ -8,7 +8,7 @@ import {
   UserCheck, UserX, ShieldCheck, Siren, Layers, AlertCircle,
   PauseCircle, AlertTriangle, Users, Radio, Activity, RefreshCw, X, Check,
   MoreVertical, CalendarClock, RotateCcw, Sparkles, Receipt, CheckCheck,
-  CreditCard, DollarSign
+  CreditCard, DollarSign, Calendar, User, Phone, Stethoscope
 } from 'lucide-react';
 import { Appointment } from '../types';
 import DateObject from 'react-date-object';
@@ -659,34 +659,46 @@ export const Appointments = () => {
   return (
     <div className="space-y-4 pb-24">
       {/* 1. TOP HEADER & CONTROLS */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 shadow-xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 shadow-xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
         {/* Title & Live Status */}
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-black text-gray-900 dark:text-white">نوبت‌های امروز</h2>
-          <span className={clsx(
-            "px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1.5 border transition-all",
-            wsStatus === 'connected' 
-              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-              : wsStatus === 'connecting'
-              ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800 animate-pulse"
-              : "bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700"
-          )}>
-            <span className={clsx("w-1.5 h-1.5 rounded-full", wsStatus === 'connected' ? "bg-emerald-500 animate-pulse" : wsStatus === 'connecting' ? "bg-amber-500" : "bg-gray-400")} />
-            {wsStatus === 'connected' ? 'صف زنده' : wsStatus === 'connecting' ? 'اتصال...' : 'آفلاین'}
-          </span>
+        <div className="flex items-center justify-between w-full lg:w-auto gap-3">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white">نوبت‌های امروز</h2>
+            <span className={clsx(
+              "px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1.5 border transition-all",
+              wsStatus === 'connected' 
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                : wsStatus === 'connecting'
+                ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800 animate-pulse"
+                : "bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700"
+            )}>
+              <span className={clsx("w-1.5 h-1.5 rounded-full", wsStatus === 'connected' ? "bg-emerald-500 animate-pulse" : wsStatus === 'connecting' ? "bg-amber-500" : "bg-gray-400")} />
+              {wsStatus === 'connected' ? 'صف زنده' : wsStatus === 'connecting' ? 'اتصال...' : 'آفلاین'}
+            </span>
+          </div>
+
+          {/* Quick Refresh on mobile */}
+          <button 
+            onClick={fetchDayBoard} 
+            disabled={isRefreshing}
+            className="lg:hidden p-2 bg-gray-50 dark:bg-gray-900/80 text-gray-500 hover:text-primary-600 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-all active:scale-95 disabled:opacity-50"
+            title="بروزرسانی دستی صف"
+          >
+            <RefreshCw size={15} className={isRefreshing ? "animate-spin text-primary-600" : ""} />
+          </button>
         </div>
 
         {/* Unified Action Controls */}
-        <div className="flex items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
           {/* Date Navigator */}
-          <div className="flex items-center bg-gray-50 dark:bg-gray-900/80 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/60">
+          <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900/80 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/60 w-full sm:w-auto">
             <button onClick={() => setSelectedDay(new DateObject(selectedDay).subtract(1, 'day'))} className="p-1.5 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" title="روز قبل">
               <ChevronRight size={16} />
             </button>
             <button onClick={() => setSelectedDay(new DateObject({ calendar: persian, locale: persian_fa }))} className="px-2.5 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg shadow-xs text-xs font-bold">
               امروز
             </button>
-            <span className="px-3 text-xs font-black text-gray-700 dark:text-gray-200 whitespace-nowrap">
+            <span className="px-2 sm:px-3 text-xs font-black text-gray-700 dark:text-gray-200 whitespace-nowrap">
               {selectedDay.format('dddd D MMMM')}
             </span>
             <button onClick={() => setSelectedDay(new DateObject(selectedDay).add(1, 'day'))} className="p-1.5 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" title="روز بعد">
@@ -694,58 +706,60 @@ export const Appointments = () => {
             </button>
           </div>
 
-          {/* Doctor Switcher */}
-          {allowedDoctors.length > 1 && (
-            <select 
-              value={selectedDoctorId} 
-              onChange={(e) => setSelectedDoctorId(Number(e.target.value))}
-              className="bg-gray-50 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-700/60 text-xs font-bold px-3 py-2 rounded-xl text-gray-800 dark:text-white outline-none"
-            >
-              {allowedDoctors.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-          )}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+            {/* Doctor Switcher */}
+            {allowedDoctors.length > 1 && (
+              <select 
+                value={selectedDoctorId} 
+                onChange={(e) => setSelectedDoctorId(Number(e.target.value))}
+                className="flex-1 sm:flex-initial bg-gray-50 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-700/60 text-xs font-bold px-3 py-2 rounded-xl text-gray-800 dark:text-white outline-none"
+              >
+                {allowedDoctors.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            )}
 
-          {/* Doctor Delay Trigger */}
-          {activeDoctorDelay ? (
-            <button
-              onClick={() => setIsDoctorDelayModalOpen(true)}
-              className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center gap-1.5 text-xs font-black shadow-xs transition-all active:scale-95"
-              title="ویرایش تاخیر فعال پزشک"
+            {/* Doctor Delay Trigger */}
+            {activeDoctorDelay ? (
+              <button
+                onClick={() => setIsDoctorDelayModalOpen(true)}
+                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center gap-1.5 text-xs font-black shadow-xs transition-all active:scale-95"
+                title="ویرایش تاخیر فعال پزشک"
+              >
+                <Clock size={14} className="animate-pulse" />
+                <span>تاخیر ({activeDoctorDelay.delayMinutes}د)</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsDoctorDelayModalOpen(true)}
+                className="px-3 py-2 bg-gray-50 dark:bg-gray-900/80 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-gray-700 dark:text-gray-300 hover:text-amber-700 border border-gray-200/80 dark:border-gray-700/60 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all"
+                title="اعلام تاخیر در ورود پزشک"
+              >
+                <CalendarClock size={14} className="text-amber-600 dark:text-amber-400" />
+                <span>اعلام تاخیر</span>
+              </button>
+            )}
+
+            {/* Manual Refresh (Desktop) */}
+            <button 
+              onClick={fetchDayBoard} 
+              disabled={isRefreshing}
+              className="hidden lg:block p-2 bg-gray-50 dark:bg-gray-900/80 text-gray-500 hover:text-primary-600 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-all active:scale-95 disabled:opacity-50"
+              title="بروزرسانی دستی صف"
             >
-              <Clock size={14} className="animate-pulse" />
-              <span>تاخیر ({activeDoctorDelay.delayMinutes}د)</span>
+              <RefreshCw size={16} className={isRefreshing ? "animate-spin text-primary-600" : ""} />
             </button>
-          ) : (
-            <button
-              onClick={() => setIsDoctorDelayModalOpen(true)}
-              className="px-3 py-2 bg-gray-50 dark:bg-gray-900/80 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-gray-700 dark:text-gray-300 hover:text-amber-700 border border-gray-200/80 dark:border-gray-700/60 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all"
-              title="اعلام تاخیر در ورود پزشک"
+
+            {/* New Appointment Button */}
+            <button 
+              onClick={() => navigate('/appointment/new')} 
+              className="flex-1 sm:flex-initial bg-primary-600 hover:bg-primary-700 text-white px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition-all text-xs active:scale-95 whitespace-nowrap"
             >
-              <CalendarClock size={14} className="text-amber-600 dark:text-amber-400" />
-              <span className="hidden sm:inline">اعلام تاخیر</span>
+              <Plus size={16} />
+              <span>نوبت جدید</span>
             </button>
-          )}
-
-          {/* Manual Refresh */}
-          <button 
-            onClick={fetchDayBoard} 
-            disabled={isRefreshing}
-            className="p-2 bg-gray-50 dark:bg-gray-900/80 text-gray-500 hover:text-primary-600 rounded-xl border border-gray-200/80 dark:border-gray-700/60 transition-all active:scale-95 disabled:opacity-50"
-            title="بروزرسانی دستی صف"
-          >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-primary-600" : ""} />
-          </button>
-
-          {/* New Appointment Button */}
-          <button 
-            onClick={() => navigate('/appointment/new')} 
-            className="bg-primary-600 hover:bg-primary-700 text-white px-3.5 py-2 rounded-xl flex items-center gap-1.5 font-bold shadow-xs transition-all text-xs active:scale-95 whitespace-nowrap"
-          >
-            <Plus size={16} />
-            <span>نوبت جدید</span>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -811,9 +825,9 @@ export const Appointments = () => {
         </div>
 
         {/* Right Info: Average Wait Time + Search Box */}
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between xl:justify-end">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full xl:w-auto justify-between xl:justify-end">
           {statsSummary.avgWaitMins > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200/80 dark:border-gray-600/60 text-xs font-bold whitespace-nowrap" title="میانگین زمان انتظار بیماران حاضر در مطب">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200/80 dark:border-gray-600/60 text-xs font-bold whitespace-nowrap self-start sm:self-auto" title="میانگین زمان انتظار بیماران حاضر در مطب">
               <Activity size={13} className="text-gray-500" />
               <span>میانگین انتظار: {statsSummary.avgWaitMins} دقیقه</span>
             </span>
@@ -825,7 +839,7 @@ export const Appointments = () => {
             <input 
               type="text" 
               placeholder="جستجوی بیمار در صف..." 
-              className="w-full pl-7 pr-9 py-1.5 bg-gray-50 dark:bg-gray-900/80 text-gray-800 dark:text-white placeholder-gray-400 border border-gray-200/80 dark:border-gray-700/60 rounded-xl outline-none text-xs font-bold focus:border-primary-500 transition-colors" 
+              className="w-full pl-7 pr-9 py-2 sm:py-1.5 bg-gray-50 dark:bg-gray-900/80 text-gray-800 dark:text-white placeholder-gray-400 border border-gray-200/80 dark:border-gray-700/60 rounded-xl outline-none text-xs font-bold focus:border-primary-500 transition-colors" 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
             />
@@ -841,10 +855,374 @@ export const Appointments = () => {
         </div>
       </div>
 
-      {/* 3. STREAMLINED 6-COLUMN OPERATIONAL QUEUE TABLE */}
+      {/* 3. STREAMLINED OPERATIONAL QUEUE (MOBILE CARDS + DESKTOP TABLE) */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto max-h-[580px] scrollbar-thin">
-          <table className="w-full text-right text-xs">
+        {/* Table / Queue Top Bar */}
+        <div className="px-4 sm:px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50 dark:bg-gray-800/30">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className="text-primary-600 dark:text-primary-400" />
+            <span className="text-xs font-black text-gray-800 dark:text-gray-200">صف نوبت‌های عملیاتی</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300">
+              {currentAppointmentsList.length} نوبت
+            </span>
+          </div>
+
+          {/* Quick Select All on Mobile */}
+          <div className="flex items-center gap-2">
+            {currentAppointmentsList.length > 0 && (
+              <button 
+                onClick={toggleSelectAll} 
+                className="md:hidden text-xs font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-primary-50/80 dark:bg-primary-950/40 border border-primary-200/60 dark:border-primary-800/60 transition-colors"
+              >
+                {selectedIds.length === currentAppointmentsList.length ? (
+                  <>
+                    <CheckSquare size={13} />
+                    <span>لغو انتخاب همه</span>
+                  </>
+                ) : (
+                  <>
+                    <Square size={13} />
+                    <span>انتخاب همه ({currentAppointmentsList.length})</span>
+                  </>
+                )}
+              </button>
+            )}
+            <div className="text-[11px] font-bold text-gray-400 hidden md:flex items-center gap-1">
+              <span>نمای فشرده عملیاتی</span>
+            </div>
+          </div>
+        </div>
+
+        {/* --- MOBILE VIEW: VERTICAL CARD LIST (When screen is phone/tablet width) --- */}
+        <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800 max-h-[640px] overflow-y-auto scrollbar-thin">
+          {currentAppointmentsList.length > 0 ? (
+            currentAppointmentsList.map((apt, index) => {
+              const waitMins = getWaitDurationMinutes(apt);
+              const latenessMins = getLatenessMinutes(apt);
+              const isCurrentVisit = apt.status === '3' || apt.status === 'in_visit';
+              const isPresent = apt.status === '4' || apt.status === 'present';
+              const isFinished = apt.status === '0' || apt.status === 'finished';
+              const isLoadingThisAction = loadingActionId === apt.uuid;
+              const fin = getAppointmentFinancials(apt);
+              const patient = patients.find(p => p.uuid === apt.patient_id);
+              const phoneNumber = (patient as any)?.phone || patient?.phone_number;
+              const nationalId = (patient as any)?.national_id || patient?.id_number;
+              const doctor = doctors.find(d => d.id === apt.doctor_id);
+
+              return (
+                <div 
+                  key={apt.uuid}
+                  className={clsx(
+                    "p-4 transition-all space-y-3",
+                    isCurrentVisit && "bg-blue-50/50 dark:bg-blue-950/20 border-r-4 border-r-blue-600",
+                    isPresent && "bg-emerald-50/40 dark:bg-emerald-950/20 border-r-4 border-r-emerald-500",
+                    selectedIds.includes(apt.uuid) && "bg-primary-50/40 dark:bg-primary-900/20"
+                  )}
+                >
+                  {/* Card Header: Checkbox + Index + Patient Name + Time Badge + Menu */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Checkbox */}
+                      <button 
+                        onClick={() => toggleSelect(apt.uuid)} 
+                        className={clsx("transition-colors shrink-0", selectedIds.includes(apt.uuid) ? "text-primary-600" : "text-gray-300 dark:text-gray-600 hover:text-primary-400")}
+                      >
+                        {selectedIds.includes(apt.uuid) ? <CheckSquare size={18}/> : <Square size={18}/>}
+                      </button>
+
+                      {/* Sequence Number */}
+                      <span className={clsx(
+                        "w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-black shrink-0",
+                        isCurrentVisit 
+                          ? "bg-blue-600 text-white shadow-xs" 
+                          : isPresent 
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300" 
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                      )}>
+                        {index + 1}
+                      </span>
+
+                      {/* Patient Name & Indicators */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-black text-gray-900 dark:text-white truncate">
+                            {getPatientName(apt.patient_id)}
+                          </span>
+                          {apt.is_walkin && (
+                            <span className="text-[9px] bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300 px-1.5 py-0.2 rounded font-bold border border-blue-200/60 dark:border-blue-800/60">
+                              حضوری
+                            </span>
+                          )}
+                          {apt.is_protected && (
+                            <span title="محافظت‌شده" className="text-amber-600"><ShieldCheck size={14} /></span>
+                          )}
+                          {apt.is_urgent && (
+                            <span title="اورژانسی" className="text-red-600 animate-pulse"><Siren size={14} /></span>
+                          )}
+                          {apt.is_double_booked && (
+                            <span title="نوبت همزمان" className="text-purple-600"><Layers size={14} /></span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Time & Overflow Menu */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono font-black text-xs dir-ltr">
+                        {formatJalaliTime(apt.for_date)}
+                      </span>
+                      <button 
+                        disabled={isLoadingThisAction}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (openMenuUuid === apt.uuid) {
+                            setOpenMenuUuid(null);
+                            setMenuAnchor(null);
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const dropdownHeight = 160;
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const showAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+                            const top = showAbove ? rect.top - dropdownHeight - 4 : rect.bottom + 4;
+                            const left = Math.max(10, Math.min(window.innerWidth - 154, rect.right - 144));
+                            setOpenMenuUuid(apt.uuid);
+                            setMenuAnchor({ top, left });
+                          }
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl transition-all border border-gray-200 dark:border-gray-700 active:scale-95"
+                        title="سایر عملیات"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Vertical Details Section */}
+                  <div className="bg-gray-50/80 dark:bg-gray-800/50 rounded-xl p-3 space-y-2 border border-gray-100 dark:border-gray-800 text-xs">
+                    
+                    {/* 1. Status Badge & Waiting / Delay detail */}
+                    <div className="flex items-center justify-between flex-wrap gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className={clsx("px-2 py-0.5 rounded-md text-[11px] font-black border", statusLabels[apt.status]?.color || 'bg-gray-100 text-gray-800 border-gray-200')}>
+                          {statusLabels[apt.status]?.label || 'مشخص نشده'}
+                        </span>
+                        {waitMins !== null && (isPresent || isCurrentVisit) && (
+                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                            <Clock size={12} />
+                            <span>{waitMins} دقیقه انتظار</span>
+                          </span>
+                        )}
+                      </div>
+                      {latenessMins > 0 && (
+                        <span className={clsx(
+                          "text-[10px] font-bold inline-flex items-center gap-1",
+                          latenessMins > EXTREME_LATENESS_THRESHOLD_MINUTES ? "text-red-600 font-black" : "text-red-500"
+                        )}>
+                          {latenessMins > EXTREME_LATENESS_THRESHOLD_MINUTES && <AlertTriangle size={12} className="text-red-600" />}
+                          <span>{latenessMins} دقیقه تاخیر</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 2. Patient Phone & National ID with direct call button */}
+                    {(phoneNumber || nationalId) && (
+                      <div className="flex items-center justify-between text-gray-600 dark:text-gray-300 pt-1.5 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                          <User size={13} />
+                          <span>اطلاعات تماس:</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {nationalId && (
+                            <span className="font-mono text-[11px] text-gray-500">{nationalId}</span>
+                          )}
+                          {phoneNumber && (
+                            <a 
+                              href={`tel:${phoneNumber}`} 
+                              className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50 px-2 py-0.5 rounded-lg border border-primary-200/60 dark:border-primary-800/60 hover:bg-primary-100 transition-colors active:scale-95"
+                              title="تماس با بیمار"
+                            >
+                              <Phone size={11} />
+                              <span className="dir-ltr">{phoneNumber}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 3. Services / Reasons detail */}
+                    {apt.services.length > 0 && (
+                      <div className="flex items-start justify-between gap-2 pt-1.5 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 shrink-0 mt-0.5">
+                          <Activity size={13} />
+                          <span>خدمات:</span>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap justify-end">
+                          {apt.services.map((serv, sIdx) => (
+                            <span 
+                              key={sIdx}
+                              className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-md text-[10px] font-bold text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700 shadow-xs"
+                            >
+                              {getReasonTitle(serv.reason_id)}
+                              {serv.quantity > 1 && ` (×${serv.quantity})`}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. Doctor (if multiple doctors are configured) */}
+                    {allowedDoctors.length > 1 && doctor && (
+                      <div className="flex items-center justify-between text-gray-600 dark:text-gray-300 pt-1.5 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                          <Stethoscope size={13} />
+                          <span>پزشک معالج:</span>
+                        </div>
+                        <span className="font-bold text-gray-800 dark:text-gray-200">{doctor.name}</span>
+                      </div>
+                    )}
+
+                    {/* 5. Financial Settlement */}
+                    <div className="flex items-center justify-between pt-1.5 border-t border-gray-200/50 dark:border-gray-700/50">
+                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <Receipt size={13} />
+                        <span>وضعیت مالی:</span>
+                      </div>
+                      <div>
+                        {(() => {
+                          if (apt.status === 'cancelled') {
+                            return <span className="text-[10px] text-gray-400 font-bold">لغوشده</span>;
+                          }
+                          if (fin.isPaidInFull) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => openCheckoutModal(apt)}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                              >
+                                <CheckCheck size={11} className="text-emerald-600" />
+                                <span>تسویه کامل ({formatCurrency(fin.totalPaid)})</span>
+                              </button>
+                            );
+                          }
+                          if (fin.isPartiallyPaid) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => openCheckoutModal(apt)}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                              >
+                                <Clock size={11} className="text-amber-600" />
+                                <span>مانده: {formatCurrency(fin.balanceRemaining)}</span>
+                              </button>
+                            );
+                          }
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => openCheckoutModal(apt)}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/80 dark:border-gray-700/60"
+                            >
+                              <Receipt size={11} className="text-gray-400" />
+                              <span>{fin.netPayable > 0 ? formatCurrency(fin.netPayable) : 'تسویه'}</span>
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Cancellation reason if cancelled */}
+                    {apt.status === 'cancelled' && (apt.cancellation_reason || apt.cancellation_type) && (
+                      <div className="pt-1.5 border-t border-gray-200/50 dark:border-gray-700/50 text-[11px] text-red-600 dark:text-red-400">
+                        <span className="font-bold">علت لغو ({apt.cancellation_type === 'clinic' ? 'توسط مطب' : 'توسط بیمار'}): </span>
+                        <span>{apt.cancellation_reason || 'بدون توضیح'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Actions: Primary Button + Secondary Action */}
+                  <div className="flex items-center gap-2 pt-1">
+                    {(apt.status === '1' || apt.status === 'pending') && (
+                      <button 
+                        disabled={isLoadingThisAction}
+                        onClick={() => handleCheckIn(apt.uuid)} 
+                        className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <UserCheck size={14} />
+                        <span>ثبت حضور در مطب</span>
+                      </button>
+                    )}
+
+                    {(apt.status === '4' || apt.status === 'present') && (
+                      <button 
+                        disabled={isLoadingThisAction}
+                        onClick={() => handleStartVisit(apt.uuid)} 
+                        className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <PlayCircle size={14} />
+                        <span>شروع ویزیت</span>
+                      </button>
+                    )}
+
+                    {(apt.status === '3' || apt.status === 'in_visit') && (
+                      <button 
+                        disabled={isLoadingThisAction}
+                        onClick={() => handleFinishVisit(apt.uuid)} 
+                        className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <CheckCircle size={14} />
+                        <span>پایان جلسه ویزیت</span>
+                      </button>
+                    )}
+
+                    {isFinished && !fin.isPaidInFull && (
+                      <button 
+                        disabled={isLoadingThisAction}
+                        onClick={() => openCheckoutModal(apt)} 
+                        className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Receipt size={14} />
+                        <span>تسویه حساب سریع</span>
+                      </button>
+                    )}
+
+                    {/* Secondary action: Settle button if not already primary */}
+                    {!fin.isPaidInFull && apt.status !== 'cancelled' && !isFinished && (
+                      <button
+                        type="button"
+                        onClick={() => openCheckoutModal(apt)}
+                        className="px-3.5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold transition-all border border-gray-200 dark:border-gray-700 flex items-center gap-1 shrink-0"
+                        title="ثبت دریافتی و تسویه"
+                      >
+                        <Receipt size={13} className="text-gray-500" />
+                        <span>تسویه</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-8 text-center text-gray-400 dark:text-gray-500 font-bold text-xs">
+              {search || statusFilter !== 'all' ? (
+                <div className="flex flex-col items-center gap-2">
+                  <span>نوبتی با این فیلتر یا جستجو یافت نشد.</span>
+                  <button
+                    onClick={() => { setSearch(''); setStatusFilter('all'); }}
+                    className="text-primary-600 hover:underline text-xs font-black"
+                  >
+                    پاک کردن فیلترها
+                  </button>
+                </div>
+              ) : (
+                'نوبتی برای این تاریخ ثبت نشده است.'
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* --- DESKTOP VIEW: STREAMLINED 6-COLUMN OPERATIONAL QUEUE TABLE (For tablets and desktops) --- */}
+        <div className="hidden md:block overflow-x-auto overflow-y-auto max-h-[580px] scrollbar-thin">
+          <table className="w-full text-right text-xs min-w-[880px]">
             <thead className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 font-black uppercase tracking-wider shadow-xs">
               <tr>
                 <th className="px-3 py-3.5 w-14 text-center bg-inherit">
@@ -855,11 +1233,31 @@ export const Appointments = () => {
                     <span className="text-[10px] text-gray-400 font-bold">#</span>
                   </div>
                 </th>
-                <th className="px-4 py-3.5 bg-inherit">بیمار و تماس</th>
-                <th className="px-4 py-3.5 bg-inherit">ساعت و انتظار</th>
-                <th className="px-4 py-3.5 bg-inherit">وضعیت و خدمات</th>
-                <th className="px-4 py-3.5 text-center bg-inherit">وضعیت تسویه</th>
-                <th className="px-4 py-3.5 text-center bg-inherit">عملیات</th>
+                <th className="px-4 py-3.5 bg-inherit">
+                  <div className="flex items-center gap-1.5">
+                    <User size={13} className="text-gray-400" />
+                    <span>بیمار و تماس</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 bg-inherit">
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={13} className="text-gray-400" />
+                    <span>ساعت و انتظار</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 bg-inherit">
+                  <div className="flex items-center gap-1.5">
+                    <Activity size={13} className="text-gray-400" />
+                    <span>وضعیت و خدمات</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 text-center bg-inherit">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Receipt size={13} className="text-gray-400" />
+                    <span>وضعیت تسویه</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 text-center bg-inherit">عملیات نوبت</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -1206,18 +1604,21 @@ export const Appointments = () => {
 
       {/* --- BULK ACTION FOOTER --- */}
       {selectedIds.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10">
-              <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-                  <div className="w-12 h-12 bg-primary-500 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-primary-500/20">{selectedIds.length}</div>
-                  <div>
-                    <span className="text-sm font-black block">نوبت انتخاب شده</span>
-                    <span className="text-[10px] opacity-50 font-bold">آماده عملیات گروهی</span>
+          <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800 text-white px-4 sm:px-8 py-3 sm:py-5 rounded-2xl sm:rounded-[2rem] shadow-2xl flex flex-col sm:flex-row items-center gap-3 sm:gap-10 animate-in slide-in-from-bottom-10 backdrop-blur-xl border border-white/10 max-w-[95vw] sm:max-w-none">
+              <div className="flex items-center gap-3 sm:gap-4 sm:border-l sm:border-white/10 sm:pl-8 w-full sm:w-auto justify-between sm:justify-start">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 bg-primary-500 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-xl shadow-lg shadow-primary-500/20">{selectedIds.length}</div>
+                    <div>
+                      <span className="text-xs sm:text-sm font-black block">نوبت انتخاب شده</span>
+                      <span className="text-[9px] sm:text-[10px] opacity-50 font-bold hidden sm:block">آماده عملیات گروهی</span>
+                    </div>
                   </div>
+                  <button onClick={() => setSelectedIds([])} className="sm:hidden p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all" title="لغو انتخاب"><X size={18} /></button>
               </div>
-              <div className="flex items-center gap-2">
-                  <button onClick={() => setIsDelayModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 rounded-xl text-xs font-black transition-all shadow-lg shadow-amber-500/20"><Clock size={16} /> تعویق زمانی</button>
-                  <button onClick={handleBulkExport} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-500/20"><Download size={16} /> خروجی اکسل</button>
-                  <button onClick={() => setSelectedIds([])} className="p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"><X size={20} /></button>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                  <button onClick={() => setIsDelayModalOpen(true)} className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 bg-amber-500 hover:bg-amber-600 rounded-xl text-xs font-black transition-all shadow-lg shadow-amber-500/20"><Clock size={14} /> تعویق زمانی</button>
+                  <button onClick={handleBulkExport} className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-500/20"><Download size={14} /> خروجی اکسل</button>
+                  <button onClick={() => setSelectedIds([])} className="hidden sm:flex p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all" title="لغو انتخاب"><X size={20} /></button>
               </div>
           </div>
       )}

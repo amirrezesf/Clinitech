@@ -38,6 +38,7 @@ export const NewAppointment = () => {
     allReasons, 
     doctors,
     addAppointment, 
+    updateAppointment,
     addPatient, 
     allAppointments,
     getReasonTitle,
@@ -584,19 +585,19 @@ export const NewAppointment = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
         {/* Page Title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
             <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500">
-              <ArrowRight size={24} />
+              <ArrowRight size={22} />
             </button>
             <div>
-              <h2 className="text-2xl font-black text-gray-800 dark:text-white">ثبت پذیرش و نوبت جدید</h2>
-              <p className="text-xs text-gray-400 font-bold mt-0.5">پذیرش تکی، حضوری (بدون وقت)، اورژانسی و برنامه‌ریزی دوره‌ای درمانی</p>
+              <h2 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">ثبت پذیرش و نوبت جدید</h2>
+              <p className="text-[11px] sm:text-xs text-gray-400 font-bold mt-0.5">پذیرش تکی، حضوری (بدون وقت)، اورژانسی و برنامه‌ریزی دوره‌ای درمانی</p>
             </div>
         </div>
 
-        <div className="glass-card p-6 md:p-8 rounded-[2.5rem] shadow-xl bg-white/80 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800">
+        <div className="glass-card p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-xl bg-white/80 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800">
             {/* Mode Switcher Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 bg-gray-100 dark:bg-gray-800/80 rounded-2xl p-1.5 mb-8 shadow-inner gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 bg-gray-100 dark:bg-gray-800/80 rounded-2xl p-1.5 mb-6 sm:mb-8 shadow-inner gap-1.5">
                 <button 
                   type="button" 
                   onClick={() => { 
@@ -604,13 +605,13 @@ export const NewAppointment = () => {
                     setPreviewSessions([]); 
                   }} 
                   className={clsx(
-                    "py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2", 
+                    "py-2.5 sm:py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2", 
                     appointmentMode === 'single' 
                       ? "bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 shadow-sm" 
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                    <Calendar size={18} />
+                    <Calendar size={16} />
                     <span>نوبت تکی</span>
                 </button>
 
@@ -623,13 +624,13 @@ export const NewAppointment = () => {
                     setPreviewSessions([]); 
                   }} 
                   className={clsx(
-                    "py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2", 
+                    "py-2.5 sm:py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2", 
                     appointmentMode === 'walkin' 
                       ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" 
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                    <Footprints size={18} />
+                    <Footprints size={16} />
                     <span>پذیرش حضوری</span>
                 </button>
 
@@ -642,13 +643,13 @@ export const NewAppointment = () => {
                     setPreviewSessions([]); 
                   }} 
                   className={clsx(
-                    "py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2", 
+                    "py-2.5 sm:py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2", 
                     appointmentMode === 'urgent' 
                       ? "bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm" 
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                    <Siren size={18} />
+                    <Siren size={16} />
                     <span>نوبت اورژانسی</span>
                 </button>
 
@@ -659,13 +660,13 @@ export const NewAppointment = () => {
                     setPreviewSessions([]); 
                   }} 
                   className={clsx(
-                    "py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2", 
+                    "py-2.5 sm:py-3 px-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2", 
                     appointmentMode === 'recurring' 
                       ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                    <Repeat size={18} />
+                    <Repeat size={16} />
                     <span>نوبت دوره‌ای</span>
                 </button>
             </div>
@@ -1230,7 +1231,7 @@ export const NewAppointment = () => {
                       type="submit" 
                       disabled={selectedServices.length === 0 || !selectedPatientId || (appointmentMode === 'urgent' && urgentPreview?.exceedsWorkingHours && !urgentPreview.isOvertimeAllowed && !overtimeAllowedOverride)} 
                       className={clsx(
-                        "px-10 py-4 text-white rounded-2xl font-black text-base shadow-2xl transition-all flex items-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:grayscale",
+                        "w-full sm:w-auto justify-center px-6 sm:px-10 py-3.5 sm:py-4 text-white rounded-2xl font-black text-sm sm:text-base shadow-2xl transition-all flex items-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:grayscale",
                         appointmentMode === 'walkin'
                           ? "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20"
                           : appointmentMode === 'urgent'
@@ -1240,7 +1241,7 @@ export const NewAppointment = () => {
                           : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
                       )}
                     >
-                       <CheckCircle size={24} /> 
+                       <CheckCircle size={22} /> 
                        <span>
                          {appointmentMode === 'walkin'
                            ? 'ثبت و پذیرش حضوری'
@@ -1257,38 +1258,38 @@ export const NewAppointment = () => {
 
         {/* New Patient Full Form Modal */}
         {isPatientModalOpen && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in !mt-0">
-                <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
-                    <div className="bg-primary-600 p-8 text-white relative shrink-0">
-                      <button onClick={() => setIsPatientModalOpen(false)} className="absolute top-6 left-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
-                        <X size={20} />
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md animate-in fade-in !mt-0">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+                    <div className="bg-primary-600 p-5 sm:p-8 text-white relative shrink-0">
+                      <button onClick={() => setIsPatientModalOpen(false)} className="absolute top-4 sm:top-6 left-4 sm:left-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
+                        <X size={18} />
                       </button>
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                          <UserPlus size={32} />
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md shrink-0">
+                          <UserPlus size={26} />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-black">تشکیل پرونده بیمار جدید</h3>
-                          <p className="opacity-80 text-sm mt-1 font-bold">اطلاعات هویتی و سوابق پزشکی را ثبت کنید</p>
+                          <h3 className="text-lg sm:text-2xl font-black">تشکیل پرونده بیمار جدید</h3>
+                          <p className="opacity-80 text-xs sm:text-sm mt-1 font-bold">اطلاعات هویتی و سوابق پزشکی را ثبت کنید</p>
                         </div>
                       </div>
                     </div>
 
-                    <form onSubmit={handleCreateNewPatient} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                        <div className="grid grid-cols-2 gap-6">
+                    <form onSubmit={handleCreateNewPatient} className="p-5 sm:p-8 space-y-4 sm:space-y-6 overflow-y-auto custom-scrollbar">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                           <div className="space-y-1">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">نام کامل</label>
-                            <input required className="w-full p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-sm" value={fullNewPatientData.name} onChange={e => setFullNewPatientData({...fullNewPatientData, name: e.target.value})} />
+                            <input required className="w-full p-3 sm:p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-xs sm:text-sm" value={fullNewPatientData.name} onChange={e => setFullNewPatientData({...fullNewPatientData, name: e.target.value})} />
                           </div>
                           <div className="space-y-1">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">تلفن همراه</label>
-                            <input required className="w-full p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white dir-ltr text-right text-sm" value={fullNewPatientData.phone_number} onChange={e => setFullNewPatientData({...fullNewPatientData, phone_number: e.target.value})} />
+                            <input required className="w-full p-3 sm:p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white dir-ltr text-right text-xs sm:text-sm" value={fullNewPatientData.phone_number} onChange={e => setFullNewPatientData({...fullNewPatientData, phone_number: e.target.value})} />
                           </div>
                         </div>
 
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">سازمان بیمه‌گر</label>
-                          <select className="w-full p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-sm" value={fullNewPatientData.insurance_id} onChange={e => setFullNewPatientData({...fullNewPatientData, insurance_id: e.target.value})}>
+                          <select className="w-full p-3 sm:p-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-xs sm:text-sm" value={fullNewPatientData.insurance_id} onChange={e => setFullNewPatientData({...fullNewPatientData, insurance_id: e.target.value})}>
                             <option value="">آزاد (بدون بیمه)</option>
                             {insurances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                           </select>
@@ -1296,11 +1297,11 @@ export const NewAppointment = () => {
 
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">یادداشت و هشدار پزشک</label>
-                          <textarea className="w-full p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-xs resize-none" rows={3} value={fullNewPatientData.notes} onChange={e => setFullNewPatientData({...fullNewPatientData, notes: e.target.value})} placeholder="مثلا: سابقه فشار خون یا حساسیت دارویی..." />
+                          <textarea className="w-full p-3.5 sm:p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl font-bold dark:text-white text-xs resize-none" rows={3} value={fullNewPatientData.notes} onChange={e => setFullNewPatientData({...fullNewPatientData, notes: e.target.value})} placeholder="مثلا: سابقه فشار خون یا حساسیت دارویی..." />
                         </div>
 
-                        <button type="submit" className="w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary-600/20 active:scale-[0.98] transition-all">
-                          <Check size={24} /> ثبت و انتخاب این بیمار
+                        <button type="submit" className="w-full py-3.5 sm:py-4 bg-primary-600 text-white rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary-600/20 active:scale-[0.98] transition-all">
+                          <Check size={22} /> ثبت و انتخاب این بیمار
                         </button>
                     </form>
                 </div>

@@ -135,12 +135,12 @@ export const Accounting = () => {
       {/* --- Optimized Header --- */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 no-print">
         <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gray-900 text-white rounded-2xl shadow-lg">
+            <div className="p-2.5 bg-gray-900 text-white rounded-2xl shadow-lg shrink-0">
                 <Calculator size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-800 dark:text-white">گزارش ترازنامه و تحلیل مالی</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-1 italic">وضعیت سلامت اقتصادی کلینیک در یک نگاه</p>
+              <h2 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">گزارش ترازنامه و تحلیل مالی</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs mt-0.5 italic">وضعیت سلامت اقتصادی کلینیک در یک نگاه</p>
             </div>
         </div>
 
@@ -148,18 +148,18 @@ export const Accounting = () => {
             {/* Time Span */}
             <div className="flex bg-white dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                 {(['7d', '30d', '90d', 'year'] as const).map(span => (
-                    <button key={span} onClick={() => setTimeSpan(span)} className={clsx("px-3 py-1.5 rounded-lg text-[10px] font-black transition-all", timeSpan === span ? "bg-primary-600 text-white" : "text-gray-500")}>
+                    <button key={span} onClick={() => setTimeSpan(span)} className={clsx("px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all", timeSpan === span ? "bg-primary-600 text-white" : "text-gray-500")}>
                         {span === '7d' ? '۷ روز' : span === '30d' ? 'ماه' : span === '90d' ? 'فصل' : 'سال'}
                     </button>
                 ))}
             </div>
 
             <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
-                <button onClick={() => setDisplayMode('simple')} className={clsx("px-4 py-1.5 rounded-lg text-[11px] font-black transition-all", displayMode === 'simple' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500")}>نمای ساده</button>
-                <button onClick={() => setDisplayMode('advanced')} className={clsx("px-4 py-1.5 rounded-lg text-[11px] font-black transition-all", displayMode === 'advanced' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500")}>پیشرفته</button>
+                <button onClick={() => setDisplayMode('simple')} className={clsx("px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black transition-all", displayMode === 'simple' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500")}>نمای ساده</button>
+                <button onClick={() => setDisplayMode('advanced')} className={clsx("px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black transition-all", displayMode === 'advanced' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500")}>پیشرفته</button>
             </div>
 
-            <button onClick={handlePrint} className="bg-primary-600 text-white px-5 py-2.5 rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-600/20 flex items-center gap-2 text-xs font-bold">
+            <button onClick={handlePrint} className="w-full sm:w-auto justify-center bg-primary-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-600/20 flex items-center gap-2 text-xs font-bold transition-all">
                 <Download size={18} />
                 دریافت گزارش PDF
             </button>
@@ -167,37 +167,37 @@ export const Accounting = () => {
       </div>
 
       {/* --- Main KPI Cards --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print-full overflow-visible">
-          <div className="glass-card p-6 rounded-3xl border-r-4 border-emerald-500">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 print-full overflow-visible">
+          <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-r-4 border-emerald-500">
               <div className="flex items-center mb-1">
                 <p className="text-gray-500 text-[10px] font-black">درآمد ناخالص (Gross)</p>
                 <InfoTip title="درآمد ناخالص چیست؟" text="مجموع کل پولی که از بیماران بابت خدمات دریافت کرده‌اید، بدون اینکه هزینه‌های اجاره و حقوق را از آن کم کنید." />
               </div>
-              <h3 className="text-2xl font-black text-gray-800 dark:text-white">{formatCurrency(currentData.totalIncome)}</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">{formatCurrency(currentData.totalIncome)}</h3>
           </div>
 
-          <div className="glass-card p-6 rounded-3xl border-r-4 border-red-500">
+          <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-r-4 border-red-500">
               <div className="flex items-center mb-1">
                 <p className="text-gray-500 text-[10px] font-black">مخارج عملیاتی (OPEX)</p>
                 <InfoTip title="مخارج عملیاتی (OPEX)" text="تمام خرج‌های جاری مطب مثل اجاره، حقوق منشی، برق و مواد مصرفی که برای سرپا ماندن کلینیک ضروری هستند." />
               </div>
-              <h3 className="text-2xl font-black text-gray-800 dark:text-white">{formatCurrency(currentData.totalExpense)}</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">{formatCurrency(currentData.totalExpense)}</h3>
           </div>
 
-          <div className="glass-card p-6 rounded-3xl border-r-4 border-blue-500 bg-blue-50/10">
+          <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-r-4 border-blue-500 bg-blue-50/10">
               <div className="flex items-center mb-1">
                 <p className="text-gray-500 text-[10px] font-black">سود خالص (EBITDA)</p>
                 <InfoTip title="سود خالص یعنی چه؟" text="پولی که پس از پرداخت تمام هزینه‌های مطب، واقعاً برای شما باقی می‌ماند (سود قبل از کسر مالیات شخصی)." />
               </div>
-              <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400">{formatCurrency(currentData.netProfit)}</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400">{formatCurrency(currentData.netProfit)}</h3>
           </div>
 
-          <div className="glass-card p-6 rounded-3xl border-r-4 border-amber-500">
+          <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-r-4 border-amber-500">
               <div className="flex items-center mb-1">
                 <p className="text-gray-500 text-[10px] font-black">مطالبات (Receivables)</p>
                 <InfoTip title="مطالبات یا چک‌ها" text="مبالغی که بابت خدمات انجام شده طلبکارید (مثل اقساطی که بیماران هنوز پرداخت نکرده‌اند)." />
               </div>
-              <h3 className="text-2xl font-black text-amber-600">{formatCurrency(currentData.receivables)}</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-amber-600">{formatCurrency(currentData.receivables)}</h3>
           </div>
       </div>
 
@@ -286,28 +286,28 @@ export const Accounting = () => {
               </div>
 
               {/* Main Chart */}
-              <div className="lg:col-span-3 glass-card p-8 rounded-3xl chart-container">
-                  <div className="flex justify-between items-center mb-8">
+              <div className="lg:col-span-3 glass-card p-4 sm:p-8 rounded-2xl sm:rounded-3xl chart-container">
+                  <div className="flex justify-between items-center mb-6 sm:mb-8">
                       <div>
-                          <h3 className="font-black text-gray-800 dark:text-white flex items-center gap-2">
+                          <h3 className="font-black text-gray-800 dark:text-white flex items-center gap-2 text-sm sm:text-base">
                               <TrendingUp className="text-primary-600" size={20} />
                               تحلیل روند سودآوری و جریان نقد (Cash Flow)
                           </h3>
                           <p className="text-[10px] text-gray-400 mt-1 italic">مقایسه ورودی پول در مقابل هزینه‌های انجام شده در طول زمان</p>
                       </div>
                   </div>
-                  <div className="h-72 w-full">
+                  <div className="h-64 sm:h-72 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={chartData}>
+                        <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                            <XAxis dataKey="name" tick={{fontSize: 10, fontFamily: 'Vazirmatn'}} axisLine={false} tickLine={false} />
-                            <YAxis tick={{fontSize: 10, fontFamily: 'Vazirmatn'}} axisLine={false} tickLine={false} />
+                            <XAxis dataKey="name" tick={{fontSize: 9, fontFamily: 'Vazirmatn'}} axisLine={false} tickLine={false} />
+                            <YAxis tick={{fontSize: 9, fontFamily: 'Vazirmatn'}} axisLine={false} tickLine={false} />
                             <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontFamily: 'Vazirmatn'}} />
-                            <Bar dataKey="income" name="ورودی (درآمد)" fill="#10b981" radius={[6, 6, 0, 0]} barSize={40} />
-                            <Bar dataKey="expense" name="خروجی (هزینه)" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={20} />
+                            <Bar dataKey="income" name="ورودی (درآمد)" fill="#10b981" radius={[6, 6, 0, 0]} barSize={24} />
+                            <Bar dataKey="expense" name="خروجی (هزینه)" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={14} />
                             <Area type="monotone" dataKey="profit" name="سود خالص" fill="url(#profitGrad)" stroke="#3b82f6" strokeWidth={3} />
                         </ComposedChart>
                     </ResponsiveContainer>
@@ -317,18 +317,18 @@ export const Accounting = () => {
       )}
 
       {displayMode === 'simple' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-full">
-              <div className="glass-card p-8 rounded-3xl min-h-[350px]">
-                  <h3 className="font-black text-gray-800 dark:text-white flex items-center gap-2 mb-8 text-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 print-full">
+              <div className="glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl min-h-[300px]">
+                  <h3 className="font-black text-gray-800 dark:text-white flex items-center gap-2 mb-6 sm:mb-8 text-sm">
                       <Star className="text-amber-500" size={18} />
                       پراکنـدگی درآمد بر اسـاس خدمات
                   </h3>
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                       {currentData.revenueByService.slice(0, 5).map((service, idx) => (
                           <div key={idx} className="space-y-2">
                               <div className="flex justify-between text-xs font-bold">
-                                  <span className="text-gray-600 dark:text-gray-400">{service.name}</span>
-                                  <span className="text-primary-600">{formatCurrency(service.value)}</span>
+                                  <span className="text-gray-600 dark:text-gray-400 truncate max-w-[60%]">{service.name}</span>
+                                  <span className="text-primary-600 shrink-0">{formatCurrency(service.value)}</span>
                               </div>
                               <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                   <div className="h-full bg-primary-500 transition-all duration-1000" style={{ width: `${currentData.totalIncome > 0 ? (service.value / currentData.totalIncome) * 100 : 0}%` }}></div>
@@ -338,12 +338,12 @@ export const Accounting = () => {
                   </div>
               </div>
               
-              <div className="glass-card p-8 rounded-3xl bg-gray-900 text-white relative overflow-hidden flex flex-col justify-center text-center">
+              <div className="glass-card p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-gray-900 text-white relative overflow-hidden flex flex-col justify-center text-center">
                   <div className="relative z-10">
-                      <Users size={48} className="mx-auto text-primary-400 mb-4" />
-                      <h4 className="text-lg font-black mb-2">تعداد مراجعین این دوره</h4>
-                      <p className="text-5xl font-black text-primary-400">{currentData.uniquePatientsCount}</p>
-                      <p className="text-xs mt-4 opacity-60">بیماران منحصر به فردی که تراکنش مالی داشته‌اند.</p>
+                      <Users size={40} className="mx-auto text-primary-400 mb-3 sm:mb-4" />
+                      <h4 className="text-base sm:text-lg font-black mb-2">تعداد مراجعین این دوره</h4>
+                      <p className="text-4xl sm:text-5xl font-black text-primary-400">{currentData.uniquePatientsCount}</p>
+                      <p className="text-xs mt-3 sm:mt-4 opacity-60">بیماران منحصر به فردی که تراکنش مالی داشته‌اند.</p>
                   </div>
                   <Brain size={250} className="absolute -left-20 -bottom-20 opacity-5 rotate-12" />
               </div>
@@ -362,10 +362,10 @@ export const Accounting = () => {
               </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {insights.map((insight, idx) => (
-                  <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-6 rounded-3xl flex items-start gap-5 hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-default">
-                      <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-inner">
+                  <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex items-start gap-3 sm:gap-5 hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-default">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-inner">
                           {insight.icon}
                       </div>
                       <p className="text-xs font-bold text-gray-600 dark:text-gray-300 leading-relaxed italic">
