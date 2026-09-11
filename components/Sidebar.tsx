@@ -99,7 +99,7 @@ export const Sidebar = ({ isOpen, toggle, isCollapsed, toggleCollapse }: Sidebar
         className={clsx(
           "fixed top-0 right-0 z-50 h-full glass border-l border-white/40 dark:border-gray-700 transition-all duration-300 ease-in-out flex flex-col",
           // Mobile state
-          isOpen ? "translate-x-0 shadow-2xl w-64" : "translate-x-full md:translate-x-0",
+          isOpen ? "translate-x-0 shadow-2xl w-64 visible" : "translate-x-full invisible md:visible md:translate-x-0",
           // Desktop state
           !isOpen && (isCollapsed ? "md:w-20" : "md:w-64")
         )}

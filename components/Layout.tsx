@@ -56,6 +56,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       case '/profile': return 'پروفایل کاربری';
       case '/accounting': return 'حسابداری';
       case '/doctors': return 'پزشکان';
+      case '/notifications': return 'اعلان‌های سیستم';
       case '/settings/secretaries': return 'مدیریت منشی‌ها';
       case '/settings/personalization': return 'شخصی‌سازی سیستم';
       default: return 'Health-Ease';
@@ -63,7 +64,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300 w-full max-w-full overflow-x-hidden">
       <Sidebar 
         isOpen={sidebarOpen} 
         toggle={() => setSidebarOpen(!sidebarOpen)} 
@@ -72,19 +73,19 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       />
       
       <main className={clsx(
-        "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
+        "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out w-full max-w-full min-w-0 overflow-x-hidden",
         isCollapsed ? "md:mr-20" : "md:mr-64"
       )}>
         {/* Header */}
-        <header className="h-20 glass sticky top-0 z-30 px-6 flex items-center justify-between shadow-sm">
-           <div className="flex items-center gap-4">
-             <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-               <Menu size={24} />
+        <header className="h-16 sm:h-20 glass sticky top-0 z-30 px-3 sm:px-6 flex items-center justify-between shadow-sm w-full max-w-full min-w-0">
+           <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+             <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 sm:p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0">
+               <Menu size={22} />
              </button>
-             <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white truncate">{getTitle()}</h2>
+             <h2 className="text-base sm:text-xl font-bold text-gray-800 dark:text-white truncate">{getTitle()}</h2>
            </div>
 
-           <div className="flex items-center gap-2 md:gap-4">
+           <div className="flex items-center gap-1 sm:gap-4 shrink-0">
              {/* Search Bar - Hidden on mobile */}
              <div className="hidden lg:flex items-center bg-gray-100/50 dark:bg-gray-700/50 rounded-xl px-4 py-2 border border-gray-200/50 dark:border-gray-600/50 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all">
                <Search size={18} className="text-gray-400 dark:text-gray-300 ml-2" />
@@ -95,14 +96,14 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                />
              </div>
 
-             <div className="flex items-center gap-1">
+             <div className="flex items-center gap-0.5 sm:gap-1">
                 {/* Theme Toggle */}
                 <button 
                     onClick={() => dispatch(toggleTheme())}
-                    className="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                    className="p-2 sm:p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
                     title={themeMode === 'light' ? 'حالت شب' : 'حالت روز'}
                 >
-                    {themeMode === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    {themeMode === 'light' ? <Moon size={18} className="sm:w-5 sm:h-5" /> : <Sun size={18} className="sm:w-5 sm:h-5" />}
                 </button>
 
                 <NotificationDropdown />
@@ -112,18 +113,18 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
              <div className="relative" ref={dropdownRef}>
                <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-3 ps-2 md:ps-4 border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 p-1.5 rounded-xl transition-all group outline-none"
+                  className="flex items-center gap-1.5 sm:gap-3 ps-1.5 sm:ps-4 border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 p-1 sm:p-1.5 rounded-xl transition-all group outline-none"
                >
                  <div className="text-left hidden sm:block">
                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-emerald-700 transition-colors">{user?.fullName || 'کاربر'}</p>
                    <p className="text-[10px] text-gray-500 dark:text-gray-400 dir-ltr text-right">{user?.role === 'doctor' ? 'پزشک متخصص' : 'مدیر داخلی'}</p>
                  </div>
-                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-green-300 p-0.5 shadow-sm">
-                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-emerald-600 font-bold">
+                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-green-300 p-0.5 shadow-sm shrink-0">
+                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-emerald-600 font-bold text-xs sm:text-base">
                       {user?.fullName?.charAt(0) || 'U'}
                     </div>
                  </div>
-                 <ChevronDown size={16} className={clsx("text-gray-400 transition-transform duration-300", isDropdownOpen && "rotate-180")} />
+                 <ChevronDown size={14} className={clsx("text-gray-400 transition-transform duration-300 sm:w-4 sm:h-4", isDropdownOpen && "rotate-180")} />
                </button>
 
                {/* Dropdown Menu */}
@@ -172,7 +173,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
         </header>
 
         {/* Content */}
-        <div className="p-4 md:p-8 max-w-7xl mx-auto w-full flex-1">
+        <div className="p-3 sm:p-4 md:p-8 max-w-7xl mx-auto w-full max-w-full min-w-0 flex-1">
            {children}
         </div>
       </main>

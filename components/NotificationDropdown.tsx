@@ -446,7 +446,7 @@ export const NotificationDropdown: React.FC = () => {
         <div className="sm:hidden fixed inset-0 z-[9999]">
           {/* Full Screen Dimmed Backdrop: Covers 100% of viewport height & width */}
           <div 
-            className="fixed inset-0 min-h-screen h-[100dvh] w-screen bg-black/50 backdrop-blur-[3px] animate-in fade-in duration-200"
+            className="fixed inset-0 min-h-screen h-[100dvh] w-full bg-black/50 backdrop-blur-[3px] animate-in fade-in duration-200"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
