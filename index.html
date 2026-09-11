@@ -4,26 +4,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="description" content="Clinitech | سامانه مدیریت مطب" />
     <title>Clinitech | سامانه مدیریت مطب</title>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-    <!-- Browser favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/Clinitech/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/Clinitech/favicon-16x16.png" />
-
-<!-- Apple -->
-<link rel="apple-touch-icon" sizes="180x180" href="/Clinitech/apple-touch-icon.png" />
-
-<!-- PWA -->
-<link rel="manifest" href="/Clinitech/site.webmanifest" />
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="preload" href="/Clinitech/assets/Regular-DjtWZjaf.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="data:text/css;base64,DQoNCkBmb250LWZhY2Ugew0KICAgIGZvbnQtZmFtaWx5OiAnVmF6aXInOw0KICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICBmb250LXdlaWdodDogOTAwOw0KICAgIHNyYzogdXJsKCdCbGFjay50dGYnKSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgZm9udC1kaXNwbGF5OiBzd2FwOw0KfQ0KDQpAZm9udC1mYWNlIHsNCiAgICBmb250LWZhbWlseTogJ1ZhemlyJzsNCiAgICBmb250LXN0eWxlOiBub3JtYWw7DQogICAgZm9udC13ZWlnaHQ6IDcwMDsNCiAgICBzcmM6IHVybCgnQm9sZC50dGYnKSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgZm9udC1kaXNwbGF5OiBzd2FwOw0KfQ0KDQpAZm9udC1mYWNlIHsNCiAgICBmb250LWZhbWlseTogJ1ZhemlyJzsNCiAgICBmb250LXN0eWxlOiBub3JtYWw7DQogICAgZm9udC13ZWlnaHQ6IDgwMDsNCiAgICBzcmM6IHVybCgnRXh0cmFCb2xkLnR0ZicpIGZvcm1hdCgndHJ1ZXR5cGUnKTsNCiAgICBmb250LWRpc3BsYXk6IHN3YXA7DQp9DQoNCkBmb250LWZhY2Ugew0KICAgIGZvbnQtZmFtaWx5OiAnVmF6aXInOw0KICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICBmb250LXdlaWdodDogMjAwOw0KICAgIHNyYzogdXJsKCdFeHRyYUxpZ2h0LnR0ZicpIGZvcm1hdCgndHJ1ZXR5cGUnKTsNCiAgICBmb250LWRpc3BsYXk6IHN3YXA7DQp9DQoNCkBmb250LWZhY2Ugew0KICAgIGZvbnQtZmFtaWx5OiAnVmF6aXInOw0KICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICBmb250LXdlaWdodDogMzAwOw0KICAgIHNyYzogdXJsKCdMaWdodC50dGYnKSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgZm9udC1kaXNwbGF5OiBzd2FwOw0KfQ0KDQpAZm9udC1mYWNlIHsNCiAgICBmb250LWZhbWlseTogJ1ZhemlyJzsNCiAgICBmb250LXN0eWxlOiBub3JtYWw7DQogICAgZm9udC13ZWlnaHQ6IDUwMDsNCiAgICBzcmM6IHVybCgnTWVkaXVtLnR0ZicpIGZvcm1hdCgndHJ1ZXR5cGUnKTsNCiAgICBmb250LWRpc3BsYXk6IHN3YXA7DQp9DQoNCkBmb250LWZhY2Ugew0KICAgIGZvbnQtZmFtaWx5OiAnVmF6aXInOw0KICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICBmb250LXdlaWdodDogNDAwOw0KICAgIHNyYzogdXJsKCdSZWd1bGFyLnR0ZicpIGZvcm1hdCgndHJ1ZXR5cGUnKTsNCiAgICBmb250LWRpc3BsYXk6IHN3YXA7DQp9DQoNCkBmb250LWZhY2Ugew0KICAgIGZvbnQtZmFtaWx5OiAnVmF6aXInOw0KICAgIGZvbnQtc3R5bGU6IG5vcm1hbDsNCiAgICBmb250LXdlaWdodDogNjAwOw0KICAgIHNyYzogdXJsKCdTZW1pQm9sZC50dGYnKSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgZm9udC1kaXNwbGF5OiBzd2FwOw0KfQ0KDQpAZm9udC1mYWNlIHsNCiAgICBmb250LWZhbWlseTogJ1ZhemlyJzsNCiAgICBmb250LXN0eWxlOiBub3JtYWw7DQogICAgZm9udC13ZWlnaHQ6IDEwMDsNCiAgICBzcmM6IHVybCgnVGhpbi50dGYnKSBmb3JtYXQoJ3RydWV0eXBlJyk7DQogICAgZm9udC1kaXNwbGF5OiBzd2FwOw0KfQ0K" media="all" />
+    <script src="./tailwind-3.4.17.js"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Vazirmatn', 'sans-serif'],
+              sans: ['Vazir', 'sans-serif'],
             },
             colors: {
               primary: {
@@ -45,9 +42,20 @@
       }
     </script>
     <style>
+      html, body {
+        overflow-x: clip;
+        max-width: 100%;
+        width: 100%;
+      }
+      #root {
+        overflow-x: clip;
+        max-width: 100%;
+        width: 100%;
+        min-height: 100vh;
+      }
       body {
         background-color: #f1f5f9;
-        font-family: 'Vazirmatn', sans-serif;
+        font-family: 'Vazir', sans-serif;
         transition: background-color 0.3s ease, color 0.3s ease;
       }
       
@@ -151,7 +159,7 @@
       }
     </style>
 
-<link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="./index.css">
   <script type="importmap">
 {
   "imports": {
@@ -173,9 +181,8 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/Clinitech/assets/index-BqLPqXmt.js"></script>
+  <script type="module" crossorigin src="/Clinitech/assets/index-KqjqOHho.js"></script>
 </head>
   <body>
     <div id="root"></div>
-</body>
 </html>
